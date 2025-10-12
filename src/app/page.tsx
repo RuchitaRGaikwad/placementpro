@@ -27,6 +27,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/icons/logo';
 import { useUser } from '@/firebase';
+import { RegisterDialog } from '@/components/RegisterDialog';
+import { useState } from 'react';
 
 const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 const featureResume = PlaceHolderImages.find(
@@ -97,9 +99,12 @@ const quickLinks = [
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
+  const [isRegisterDialogOpen, setRegisterDialogOpen] = useState(false);
+
 
   return (
     <div className="flex min-h-screen flex-col">
+      <RegisterDialog open={isRegisterDialogOpen} onOpenChange={setRegisterDialogOpen} />
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -132,10 +137,8 @@ export default function HomePage() {
                 <Button variant="ghost" asChild>
                   <Link href="/login">Log In</Link>
                 </Button>
-                <Button asChild>
-                  <Link href="/login">
+                <Button onClick={() => setRegisterDialogOpen(true)}>
                     Sign Up <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
                 </Button>
               </>
             )}
@@ -165,10 +168,8 @@ export default function HomePage() {
                 PlacementPro is a comprehensive platform designed to help Indian college students crack placements at top companies. We provide AI-powered tools, a community-driven knowledge base, and premium mentorship to give you the edge you need.
               </p>
               <div className="flex gap-4">
-                <Button size="lg" asChild>
-                  <Link href="/dashboard">
+                <Button size="lg" onClick={() => setRegisterDialogOpen(true)}>
                     Get Started Free <ArrowRight className="ml-2" />
-                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="#features">Learn More</Link>
@@ -295,12 +296,10 @@ export default function HomePage() {
               size="lg"
               variant="secondary"
               className="mt-8"
-              asChild
+              onClick={() => setRegisterDialogOpen(true)}
             >
-              <Link href="/login">
                 Join PlacementPro Now
                 <ArrowRight className="ml-2" />
-              </Link>
             </Button>
           </div>
         </section>
@@ -327,7 +326,6 @@ export default function HomePage() {
     </div>
   );
 }
-
     
 
     
