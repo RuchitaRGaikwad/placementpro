@@ -8,7 +8,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "Unique identifier for the user entity."
         },
         "email": {
           "type": "string",
@@ -21,7 +21,7 @@
         },
         "role": {
           "type": "string",
-          "description": "User's role (student, mentor, or admin)."
+          "description": "User's role (student, mentor, admin)."
         },
         "photoURL": {
           "type": "string",
@@ -56,11 +56,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the mentor."
+          "description": "Unique identifier for the mentor entity."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:1 Mentor). The user's id"
+          "description": "Reference to User. (Relationship: User 1:1 Mentor)"
         },
         "company": {
           "type": "string",
@@ -83,15 +83,15 @@
         },
         "availability": {
           "type": "string",
-          "description": "Mentor's availability (JSON string)."
+          "description": "Mentor's availability (JSON string of date and time slots)."
         },
         "pricePerSession": {
           "type": "number",
-          "description": "Price per mock interview session."
+          "description": "Mentor's price per mock interview session."
         },
         "rating": {
           "type": "number",
-          "description": "Mentor's average rating (1-5)."
+          "description": "Mentor's average rating (1-5 stars)."
         },
         "reviewIds": {
           "type": "array",
@@ -109,7 +109,8 @@
         "bio",
         "expertise",
         "availability",
-        "pricePerSession"
+        "pricePerSession",
+        "rating"
       ]
     },
     "Booking": {
@@ -120,7 +121,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the booking."
+          "description": "Unique identifier for the booking entity."
         },
         "studentId": {
           "type": "string",
@@ -132,20 +133,20 @@
         },
         "slot": {
           "type": "string",
-          "description": "The time slot for the booking (JSON string)."
+          "description": "JSON string containing the start and end time of the booking."
         },
         "status": {
           "type": "string",
-          "description": "Booking status (confirmed, completed, cancelled)."
+          "description": "Status of the booking (confirmed, completed, cancelled)."
         },
         "videoLink": {
           "type": "string",
-          "description": "Link to the video meeting.",
+          "description": "Link to the video meeting for the booking.",
           "format": "uri"
         },
         "paymentId": {
           "type": "string",
-          "description": "Identifier for the payment."
+          "description": "Identifier for the payment associated with the booking."
         }
       },
       "required": [
@@ -160,23 +161,23 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Review",
       "type": "object",
-      "description": "Represents a review given by a student to a mentor.",
+      "description": "Represents a review for a mentor.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the review."
+          "description": "Unique identifier for the review entity."
         },
         "studentId": {
           "type": "string",
-          "description": "Reference to User (Student). (Relationship: User 1:N Review)"
+          "description": "Reference to User (Student) who wrote the review. (Relationship: User 1:N Review)"
         },
         "mentorId": {
           "type": "string",
-          "description": "Reference to Mentor. (Relationship: Mentor 1:N Review)"
+          "description": "Reference to Mentor being reviewed. (Relationship: Mentor 1:N Review)"
         },
         "rating": {
           "type": "number",
-          "description": "Rating given by the student (1-5)."
+          "description": "Rating given by the student (1-5 stars)."
         },
         "text": {
           "type": "string",
@@ -195,19 +196,19 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Resource",
       "type": "object",
-      "description": "Represents a resource in the community library.",
+      "description": "Represents a resource available in the community library.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the resource."
+          "description": "Unique identifier for the resource entity."
         },
         "authorId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Resource)"
+          "description": "Reference to User who created the resource. (Relationship: User 1:N Resource)"
         },
         "type": {
           "type": "string",
-          "description": "Type of resource (experience or question)."
+          "description": "Type of resource (experience, question)."
         },
         "company": {
           "type": "string",
@@ -223,7 +224,7 @@
         },
         "status": {
           "type": "string",
-          "description": "Status of the resource (pending or approved)."
+          "description": "Status of the resource (pending, approved)."
         }
       },
       "required": [
@@ -231,7 +232,6 @@
         "authorId",
         "type",
         "company",
-        "role",
         "content",
         "status"
       ]
@@ -244,7 +244,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the bootcamp."
+          "description": "Unique identifier for the bootcamp entity."
         },
         "title": {
           "type": "string",
@@ -252,7 +252,7 @@
         },
         "instructor": {
           "type": "string",
-          "description": "Name of the instructor."
+          "description": "Name of the bootcamp instructor."
         },
         "description": {
           "type": "string",
@@ -260,7 +260,7 @@
         },
         "schedule": {
           "type": "string",
-          "description": "Schedule of the bootcamp (JSON string)."
+          "description": "JSON string representing the bootcamp schedule."
         },
         "price": {
           "type": "number",
@@ -268,7 +268,7 @@
         },
         "enrolledStudentIds": {
           "type": "array",
-          "description": "References to Users (Students). (Relationship: Bootcamp 1:N User)",
+          "description": "References to Users (Students) enrolled in the bootcamp. (Relationship: Bootcamp 1:N User)",
           "items": {
             "type": "string"
           }
@@ -293,13 +293,13 @@
   "firestore": {
     "structure": [
       {
-        "path": "/backend/users/{userId}",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles. User ID is used as the document ID. Includes denormalized 'role' field for simpler authorization rules.",
+          "description": "Stores user profiles. Includes standard user information such as email, display name, role, photoURL and resumeURL.",
           "params": [
             {
               "name": "userId",
@@ -309,13 +309,13 @@
         }
       },
       {
-        "path": "/backend/mentors/{mentorId}",
+        "path": "/mentors/{mentorId}",
         "definition": {
           "entityName": "Mentor",
           "schema": {
             "$ref": "#/backend/entities/Mentor"
           },
-          "description": "Stores mentor profiles. Mentor ID is used as the document ID. The 'userId' field is used to link to the corresponding user document.",
+          "description": "Stores mentor profiles. Each document contains information about a mentor, including their company, role, bio, expertise, availability, price per session, rating, and reviews.",
           "params": [
             {
               "name": "mentorId",
@@ -325,13 +325,13 @@
         }
       },
       {
-        "path": "/backend/bookings/{bookingId}",
+        "path": "/bookings/{bookingId}",
         "definition": {
           "entityName": "Booking",
           "schema": {
             "$ref": "#/backend/entities/Booking"
           },
-          "description": "Stores booking information. Booking ID is used as the document ID.",
+          "description": "Stores booking information. Each document represents a booking for a mock interview session, including the student ID, mentor ID, slot, status, video link, and payment ID.",
           "params": [
             {
               "name": "bookingId",
@@ -341,13 +341,13 @@
         }
       },
       {
-        "path": "/backend/reviews/{reviewId}",
+        "path": "/reviews/{reviewId}",
         "definition": {
           "entityName": "Review",
           "schema": {
             "$ref": "#/backend/entities/Review"
           },
-          "description": "Stores reviews for mentors. Review ID is used as the document ID.",
+          "description": "Stores reviews for mentors. Each document contains the student ID, mentor ID, rating, and text of the review.",
           "params": [
             {
               "name": "reviewId",
@@ -357,13 +357,13 @@
         }
       },
       {
-        "path": "/backend/resources/{resourceId}",
+        "path": "/resources/{resourceId}",
         "definition": {
           "entityName": "Resource",
           "schema": {
             "$ref": "#/backend/entities/Resource"
           },
-          "description": "Stores community resources. Resource ID is used as the document ID.",
+          "description": "Stores resources available in the community library. Includes the author ID, type, company, role, content, and status of the resource.",
           "params": [
             {
               "name": "resourceId",
@@ -373,13 +373,13 @@
         }
       },
       {
-        "path": "/backend/bootcamps/{bootcampId}",
+        "path": "/bootcamps/{bootcampId}",
         "definition": {
           "entityName": "Bootcamp",
           "schema": {
             "$ref": "#/backend/entities/Bootcamp"
           },
-          "description": "Stores information about bootcamps. Bootcamp ID is used as the document ID.",
+          "description": "Stores information about paid bootcamps. Includes the title, instructor, description, schedule, price, and enrolled student IDs.",
           "params": [
             {
               "name": "bootcampId",
@@ -387,8 +387,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "roles_admin",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection used to store admin roles, if a document exists for the user ID they are an admin. Existence over Content pattern. It holds admin user IDs.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the admin user."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support PlacementPro's features while adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity. User data and associated resources are organized in hierarchical paths to simplify security rules and maintain data integrity. Key denormalization strategies are applied to avoid complex `get()` calls in security rules, enhancing performance and security.\n\n**Authorization Independence:** The `members` map in collaborative documents (if any) will be denormalized to child documents to ensure that authorization checks do not require reading parent documents.\n\n**Structural Segregation:** Different data types with varying access requirements are stored in separate collections. For instance, user-specific data resides under `/users/{userId}`, while global resources are stored in `/resources`.\n\n**Access Modeling:** Path-based ownership (`/users/{userId}/...`) is used for user-owned data, simplifying ownership-based security rules. The Membership Map (`members: {uid: role}`) is used for collaborative access (if applicable).\n\n**QAPs Support:** Secure `list` operations are supported by segregating data based on access requirements (e.g., public resources vs. user-private data) and by denormalizing authorization data when necessary."
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily manageable data architecture for the PlacementPro application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). The structure ensures that security rules are straightforward, robust, and easily debuggable.\n\n**Authorization Independence:** Denormalization is extensively used to avoid hierarchical authorization dependencies, which can complicate security rules and hinder atomic operations (transactions/batches). For instance, access control data (e.g., enrolled student IDs for bootcamps) are embedded directly within the relevant documents, eliminating the need for complex `get()` calls in security rules.\n\n**Structural Segregation:** The design segregates data based on access needs. User-owned data is stored under `/users/{userId}`, resources requiring moderation are kept separate, and global roles are managed via dedicated collections.\n\n**Access Modeling:** User data is primarily path-based (`/users/{userId}`). Collaborative data, like bootcamps with enrolled students, uses arrays of IDs directly within the document. Global roles are managed using the existence of documents in dedicated collections (e.g., `/roles_admin/{uid}`).\n\n**QAPs (Rules are not Filters):** The structure enables secure `list` operations by ensuring that collections contain documents with homogeneous security requirements. For example, listing mentors is safe because all documents in the `/mentors/{mentorId}` collection have the same read access permissions.\n\n**Invariants:** The structure supports invariants such as ownership and data integrity. For example, the `authorId` field in the `/resources/{resourceId}` collection ensures that the creator of a resource is always explicitly known.\n\n**Data Clarity and Predictability:** The structure enforces explicit state modeling (e.g., `status` field for resources) and avoids dynamic keys. Consistent naming conventions are followed across all paths and fields."
   }
 }
