@@ -156,15 +156,13 @@ export default function HomePage() {
             <div className="flex flex-col items-start gap-6">
               <Badge variant="outline" className="py-1 px-3">
                 <Zap className="mr-2 h-4 w-4 text-accent" />
-                Free &amp; Premium Placement Prep
+                From College to Career
               </Badge>
               <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
                 Your Gateway to Top Tech Careers in India
               </h1>
               <p className="text-lg text-muted-foreground">
-                PlacementPro democratizes job placement preparation with a free,
-                community-driven knowledge base and premium mentorship from
-                industry experts.
+                PlacementPro is a comprehensive platform designed to help Indian college students crack placements at top companies. We provide AI-powered tools, a community-driven knowledge base, and premium mentorship to give you the edge you need.
               </p>
               <div className="flex gap-4">
                 <Button size="lg" asChild>
@@ -192,33 +190,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="py-20 bg-muted/50">
-             <div className="container">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-headline flex items-center gap-2">
-                           <LayoutDashboard /> Dashboard
-                        </CardTitle>
-                        <CardDescription>
-                            Jump right back into your prep.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {quickLinks.map(link => (
-                            <Button key={link.title} variant="outline" className="h-24 flex-col justify-center gap-2" asChild>
-                                <Link href={link.href}>
-                                    <link.icon className="h-6 w-6 text-primary" />
-                                    <span className="text-sm font-medium text-center">{link.title}</span>
-                                </Link>
-                            </Button>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-        </section>
-
-
-        <section id="features" className="py-20">
+        <section id="features" className="py-20 bg-muted/50">
           <div className="container">
             <div className="mx-auto max-w-2xl text-center mb-12">
               <h2 className="font-headline text-3xl md:text-4xl font-bold">
@@ -266,7 +238,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="mentors" className="py-20 bg-muted/50">
+        <section id="mentors" className="py-20">
           <div className="container text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">
               Learn from the Best
@@ -355,3 +327,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
