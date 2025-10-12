@@ -109,7 +109,7 @@ export default function HomePage() {
           <nav className="hidden flex-1 items-center gap-6 text-sm font-medium md:flex">
             <Link
               href="#features"
-              className="text-foreground/60 transition-colors hover:text-foreground/80"
+              className="text-primary transition-colors hover:text-primary/80"
             >
               Features
             </Link>
@@ -121,7 +121,7 @@ export default function HomePage() {
             </Link>
              <Link
               href="/dashboard"
-              className="text-foreground/60 transition-colors hover:text-foreground/80"
+              className="text-primary transition-colors hover:text-primary/80"
             >
               Dashboard
             </Link>

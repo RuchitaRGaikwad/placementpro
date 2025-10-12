@@ -16,12 +16,10 @@ export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
       <path
         d="M12 10H17C18.6569 10 20 11.3431 20 13C20 14.6569 18.6569 16 17 16H12V10Z"
         fill="hsl(var(--primary-foreground))"
-        className="group-data-[sidebar=sidebar]:fill-[hsl(var(--sidebar-primary-foreground))]"
       />
       <path
         d="M12 10V22"
         stroke="hsl(var(--primary-foreground))"
-        className="group-data-[sidebar=sidebar]:stroke-[hsl(var(--sidebar-primary-foreground))]"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
