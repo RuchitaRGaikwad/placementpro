@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -25,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/icons/logo';
 import Link from 'next/link';
-import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 
@@ -61,20 +60,30 @@ export default function LoginPage() {
     });
     
     async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+        setAuthError(null);
         try {
-            initiateEmailSignIn(auth, values.email, values.password);
+            await signInWithEmailAndPassword(auth, values.email, values.password);
             router.push('/dashboard');
         } catch (error: any) {
-            setAuthError(error.message);
+             if (error.code === 'auth/invalid-credential') {
+                setAuthError('Invalid email or password. Please try again.');
+            } else {
+                setAuthError('An unexpected error occurred. Please try again.');
+            }
         }
     }
 
     async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+        setAuthError(null);
        try {
-            initiateEmailSignUp(auth, values.email, values.password);
+            await createUserWithEmailAndPassword(auth, values.email, values.password);
             router.push('/dashboard');
         } catch (error: any) {
-            setAuthError(error.message);
+            if (error.code === 'auth/email-already-in-use') {
+                setAuthError('This email is already registered. Please log in.');
+            } else {
+                setAuthError('An unexpected error occurred during registration.');
+            }
         }
     }
 
