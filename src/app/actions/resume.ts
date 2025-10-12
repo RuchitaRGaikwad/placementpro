@@ -2,10 +2,10 @@
 
 import { z } from 'zod';
 import { analyzeResume } from '@/ai/flows/ai-resume-review';
-import { doc, setDoc } from 'firebase/firestore';
 import { initializeAdmin } from '@/firebase/admin';
 import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, { message: 'Job description must be at least 50 characters long.' }),
@@ -74,12 +74,12 @@ export async function reviewResumeAction(
       jobDescription,
     });
     
-    const analysesCollection = doc(firestore, 'users', currentUserUid, 'resumeAnalyses', 'some-id').parent;
-    const analysisId = doc(analysesCollection).id;
-    const analysisRef = doc(firestore, 'users', currentUserUid, 'resumeAnalyses', analysisId);
+    const db = getFirestore();
+    const analysisCollectionRef = db.collection('users').doc(currentUserUid).collection('resumeAnalyses');
+    const newAnalysisDoc = analysisCollectionRef.doc();
     
-    await setDoc(analysisRef, {
-      id: analysisId,
+    await newAnalysisDoc.set({
+      id: newAnalysisDoc.id,
       userId: currentUserUid,
       jobDescription,
       matchScore: analysis.matchScore,

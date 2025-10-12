@@ -2,10 +2,10 @@
 
 import { z } from 'zod';
 import { initializeAdmin } from '@/firebase/admin';
-import { doc, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const settingsSchema = z.object({
   displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
@@ -57,7 +57,7 @@ export async function updateSettingsAction(
   const { displayName, photoURL, resumeURL } = validatedFields.data;
 
   try {
-    const userRef = doc(firestore, 'users', currentUserUid);
+    const userRef = getFirestore().collection('users').doc(currentUserUid);
 
     const dataToUpdate: { displayName: string, photoURL?: string, resumeURL?: string } = {
         displayName
@@ -71,7 +71,7 @@ export async function updateSettingsAction(
         dataToUpdate.resumeURL = resumeURL;
     }
 
-    await updateDoc(userRef, dataToUpdate);
+    await userRef.update(dataToUpdate);
 
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard'); // To update avatar in layout
@@ -79,8 +79,21 @@ export async function updateSettingsAction(
     return { success: true, message: 'Settings updated successfully.' };
   } catch (error) {
     console.error('Error updating settings:', error);
-    if ((error as any).code === 'permission-denied') {
-        return { success: false, message: 'You do not have permission to perform this action.' };
+    if ((error as any).code === 'permission-denied' || (error as any).code === 5) { // permission-denied or NOT_FOUND
+        // Create the document if it doesn't exist.
+        const userRef = getFirestore().collection('users').doc(currentUserUid);
+        const dataToSet: { displayName: string, photoURL?: string, resumeURL?: string, email: string, role: string } = {
+            displayName,
+            email: decodedToken.email || '',
+            role: 'student'
+        };
+        if (photoURL) dataToSet.photoURL = photoURL;
+        if (resumeURL) dataToSet.resumeURL = resumeURL;
+        
+        await userRef.set(dataToSet, { merge: true });
+        revalidatePath('/dashboard/settings');
+        revalidatePath('/dashboard');
+        return { success: true, message: 'Settings created and saved successfully.' };
     }
     return {
       success: false,
