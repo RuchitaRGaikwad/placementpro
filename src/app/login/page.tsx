@@ -41,7 +41,6 @@ const registerSchema = z.object({
 
 function LoginForm() {
     const auth = useAuth();
-    const router = useRouter();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,30 +53,15 @@ function LoginForm() {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken(true); // Force refresh
-
-            const response = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Failed to create session.' }));
-                throw new Error(errorData.message || 'Failed to create session.');
-            }
-            
-            router.push('/dashboard');
-
+            await signInWithEmailAndPassword(auth, values.email, values.password);
+            // The onIdTokenChanged listener in FirebaseProvider will handle the redirect.
         } catch (error: any) {
-            if (error.code === 'auth/invalid-credential') {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set to false on error
         }
     }
 
@@ -121,7 +105,6 @@ function LoginForm() {
 
 function RegisterForm() {
     const auth = useAuth();
-    const router = useRouter();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -134,30 +117,15 @@ function RegisterForm() {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken(true); // Force refresh
-
-            const response = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-
-            if (!response.ok) {
-                 const errorData = await response.json().catch(() => ({ message: 'Failed to create session.' }));
-                throw new Error(errorData.message || 'Failed to create session.');
-            }
-            
-            router.push('/dashboard');
-
+            await createUserWithEmailAndPassword(auth, values.email, values.password);
+             // The onIdTokenChanged listener in FirebaseProvider will handle the redirect.
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set to false on error
         }
     }
 
