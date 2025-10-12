@@ -60,7 +60,7 @@ export default function BootcampsPage() {
           <GraduationCap className="w-8 h-8" /> Exclusive Bootcamps
         </h1>
         <p className="text-muted-foreground mt-2">
-          Enroll in expert-led bootcamps to fast-track your skills and career.
+          Enroll in premium, expert-led bootcamps to fast-track your skills and career.
         </p>
       </div>
 
@@ -79,6 +79,7 @@ export default function BootcampsPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       data-ai-hint={image.imageHint}
                     />
+                     <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
                   </div>
                 )}
                 <CardHeader>

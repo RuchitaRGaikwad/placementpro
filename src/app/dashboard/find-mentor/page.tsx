@@ -57,7 +57,7 @@ export default function FindMentorPage() {
        <div>
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Users className="w-8 h-8"/> Mentor Marketplace</h1>
         <p className="text-muted-foreground mt-2">
-          Browse and book sessions with top industry professionals.
+          Browse and book premium sessions with top industry professionals.
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export default function FindMentorPage() {
         {mentors.map((mentor) => {
           const mentorImage = getMentorImage(mentor.imageId);
           return (
-            <Card key={mentor.id} className="flex flex-col hover:border-primary transition-colors">
+             <Card key={mentor.id} className="flex flex-col group hover:border-primary transition-colors">
               <Link href={`/dashboard/find-mentor/${mentor.id}`} className='flex flex-col flex-grow'>
                 <CardHeader className="flex-row items-start gap-4">
                   {mentorImage && (
@@ -99,7 +99,7 @@ export default function FindMentorPage() {
                   </div>
                 </CardContent>
               </Link>
-              <CardFooter className="flex items-center justify-between">
+               <CardFooter className="flex items-center justify-between">
                 <div className="font-bold flex items-center">
                     <IndianRupee className='h-5 w-5' />
                     {mentor.pricePerSession}

@@ -49,6 +49,7 @@ const features = [
       'Get an instant match score and improvement tips for your resume against any job description.',
     image: featureResume,
     link: '/dashboard/resume-review',
+    isPremium: false,
   },
   {
     icon: <Users className="h-8 w-8 text-primary" />,
@@ -57,6 +58,7 @@ const features = [
       'Book mock interviews with verified mentors from top tech companies and get personalized feedback.',
     image: featureMentors,
     link: '/dashboard/find-mentor',
+    isPremium: true,
   },
   {
     icon: <BookOpen className="h-8 w-8 text-primary" />,
@@ -65,6 +67,7 @@ const features = [
       'Access a community-driven library of interview experiences, questions, and learning materials.',
     image: featureResources,
     link: '/dashboard/resources',
+    isPremium: false,
   },
   {
     icon: <GraduationCap className="h-8 w-8 text-primary" />,
@@ -73,6 +76,7 @@ const features = [
       'Enroll in expert-led bootcamps on topics like System Design, DSA, and more to fast-track your learning.',
     image: featureBootcamps,
     link: '/dashboard/bootcamps',
+    isPremium: true,
   },
 ];
 
@@ -169,14 +173,19 @@ export default function HomePage() {
               {features.map((feature) => (
                 <Card key={feature.title} className="overflow-hidden group">
                   {feature.image && (
-                    <Image
-                      src={feature.image.imageUrl}
-                      alt={feature.image.description}
-                      width={600}
-                      height={400}
-                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                      data-ai-hint={feature.image.imageHint}
-                    />
+                    <div className="relative">
+                      <Image
+                        src={feature.image.imageUrl}
+                        alt={feature.image.description}
+                        width={600}
+                        height={400}
+                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-ai-hint={feature.image.imageHint}
+                      />
+                      {feature.isPremium && (
+                        <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
+                      )}
+                    </div>
                   )}
                   <CardHeader>
                     <div className="mb-4">{feature.icon}</div>

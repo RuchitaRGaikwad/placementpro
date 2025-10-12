@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Terminal } from 'lucide-react';
+import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -132,10 +132,10 @@ export function ResumeReviewForm() {
       </Form>
       
       {analysisResult && (
-        <Card className="mt-8 border-accent">
+        <Card className="mt-8 border-primary">
           <CardHeader>
             <CardTitle className="text-2xl font-headline flex items-center gap-2">
-              <Award className="w-7 h-7 text-accent" />
+              <Award className="w-7 h-7 text-primary" />
               Resume Analysis Complete
             </CardTitle>
           </CardHeader>
@@ -155,17 +155,24 @@ export function ResumeReviewForm() {
               </div>
             </div>
             <Separator />
-            <div className="bg-primary/10 p-6 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <h4 className="font-bold text-lg text-primary font-headline">Go a Step Further</h4>
-                <p className="text-sm text-primary/80">
-                  Upgrade to a premium review for detailed, personalized feedback from an industry expert.
-                </p>
-              </div>
-              <Button variant="default" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                Get Expert Review <ArrowRight className="ml-2" />
-              </Button>
-            </div>
+             <Card className="bg-primary/10 border-primary/20">
+                <CardHeader className="flex-row items-center gap-4">
+                    <div className="p-3 bg-accent rounded-full">
+                        <Star className="w-6 h-6 text-accent-foreground" />
+                    </div>
+                    <div>
+                        <CardTitle className="text-lg text-primary font-headline">Go a Step Further: Get a Premium Review</CardTitle>
+                        <CardDescription className="text-primary/80">
+                         Upgrade to a premium review for detailed, personalized feedback from an industry expert.
+                        </CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Button variant="default" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        Request Expert Review <ArrowRight className="ml-2" />
+                    </Button>
+                </CardContent>
+            </Card>
           </CardContent>
         </Card>
       )}
