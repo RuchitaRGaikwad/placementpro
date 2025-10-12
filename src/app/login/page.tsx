@@ -2,9 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,22 +10,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/icons/logo';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 
 
 const loginSchema = z.object({
@@ -46,82 +40,116 @@ const registerSchema = z.object({
 });
 
 
-export default function LoginPage() {
+function LoginForm() {
     const auth = useAuth();
     const router = useRouter();
-    const { user, isUserLoading } = useUser();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [activeTab, setActiveTab] = useState('login');
 
-    const loginForm = useForm<z.infer<typeof loginSchema>>({
+    const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
         defaultValues: { email: '', password: '' },
     });
 
-    const registerForm = useForm<z.infer<typeof registerSchema>>({
-        resolver: zodResolver(registerSchema),
-        defaultValues: { email: '', password: '', confirmPassword: '' },
-    });
-    
-    // Redirect if user is already logged in
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            router.push('/dashboard');
-        }
-    }, [isUserLoading, user, router]);
-    
-    async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    async function onSubmit(values: z.infer<typeof loginSchema>) {
         setAuthError(null);
         setIsSubmitting(true);
         try {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
             const idToken = await userCredential.user.getIdToken();
 
-            // Create server session
             const response = await fetch('/api/auth/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: idToken,
             });
 
-            if (response.ok) {
-                // Redirect on successful session creation
-                router.push('/dashboard');
-            } else {
-                throw new Error('Failed to create session.');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to create session.' }));
+                throw new Error(errorData.message || 'Failed to create session.');
             }
+            
+            router.push('/dashboard');
 
         } catch (error: any) {
-             if (error.code === 'auth/invalid-credential') {
+            if (error.code === 'auth/invalid-credential') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
+        } finally {
             setIsSubmitting(false);
         }
     }
 
-    async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : 'Login'}
+                </Button>
+            </form>
+        </Form>
+    );
+}
+
+function RegisterForm() {
+    const auth = useAuth();
+    const router = useRouter();
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<z.infer<typeof registerSchema>>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: { email: '', password: '', confirmPassword: '' },
+    });
+    
+    async function onSubmit(values: z.infer<typeof registerSchema>) {
         setAuthError(null);
         setIsSubmitting(true);
-       try {
+        try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const idToken = await userCredential.user.getIdToken();
 
-             // Create server session
             const response = await fetch('/api/auth/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: idToken,
             });
 
-            if (response.ok) {
-                // Redirect on successful session creation
-                router.push('/dashboard');
-            } else {
-                throw new Error('Failed to create session.');
+            if (!response.ok) {
+                 const errorData = await response.json().catch(() => ({ message: 'Failed to create session.' }));
+                throw new Error(errorData.message || 'Failed to create session.');
             }
+            
+            router.push('/dashboard');
 
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
@@ -129,18 +157,75 @@ export default function LoginPage() {
             } else {
                 setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
+        } finally {
             setIsSubmitting(false);
         }
     }
 
-    const handleTabChange = (value: string) => {
-        setActiveTab(value);
-        setAuthError(null);
-        loginForm.reset();
-        registerForm.reset();
-    }
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                   {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                </Button>
+            </form>
+        </Form>
+    );
+}
 
-    // A simple loading state while we check for an existing user
+
+export default function LoginPage() {
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+
+    // Redirect if user is already logged in
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            router.push('/dashboard');
+        }
+    }, [isUserLoading, user, router]);
+
+    // A simple loading state while we check for an existing user or if we are redirecting
     if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
@@ -167,96 +252,18 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
-              <TabsContent value="login" className="pt-4">
-                <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                        <FormField
-                        control={loginForm.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting && activeTab === 'login' ? <Loader2 className="animate-spin" /> : 'Login'}
-                        </Button>
-                    </form>
-                </Form>
+              <TabsContent value="login" className="pt-6">
+                <LoginForm />
               </TabsContent>
-              <TabsContent value="register" className="pt-4">
-                 <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                        <FormField
-                        control={registerForm.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                           {isSubmitting && activeTab === 'register' ? <Loader2 className="animate-spin" /> : 'Create Account'}
-                        </Button>
-                    </form>
-                </Form>
+              <TabsContent value="register" className="pt-6">
+                 <RegisterForm />
               </TabsContent>
             </Tabs>
-             {authError && <p className="text-center text-sm text-red-500 mt-4">{authError}</p>}
           </CardContent>
         </Card>
       </div>
