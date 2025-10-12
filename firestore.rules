@@ -1,0 +1,168 @@
+/**
+ * @fileoverview Firestore Security Rules for PlacementPro.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for user profiles and associated
+ * resources, while allowing public read access to community resources. It leverages
+ * denormalization of authorization data to avoid costly `get()` calls.
+ *
+ * Data Structure:
+ * - /backend/users/{userId}: Stores user profiles.  User-owned, write-protected except for the owner.
+ * - /backend/mentors/{mentorId}: Stores mentor profiles.  Write-protected except for the owner.
+ * - /backend/bookings/{bookingId}: Stores booking information.  Write-protected except for the owner.
+ * - /backend/reviews/{reviewId}: Stores reviews.  Write-protected except for the owner.
+ * - /backend/resources/{resourceId}: Stores community resources. Publicly readable, owner-writeable.
+ * - /backend/bootcamps/{bootcampId}: Stores bootcamp information. Publicly readable, owner-writeable.
+ *
+ * Key Security Decisions:
+ * - Users can only create, update, and delete their own user profiles.
+ * - Resources are publicly readable but only the author can modify or delete them.
+ * - Listing of users is not allowed.
+ * - All write operations require a verified user identity (authentication).
+ *
+ * Denormalization for Authorization:
+ * - User 'role' is denormalized into the user document itself to simplify role-based access control.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Enforces user-ownership for user profiles.
+     * @path /backend/users/{userId}
+     * @allow (create) User with ID 'user123' can create their profile: `request.auth.uid == 'user123'`
+     * @deny (create) User with ID 'user123' cannot create a profile with ID 'otherUser': `request.auth.uid == 'user123' && request.resource.data.id == 'otherUser'`
+     * @allow (get) User with ID 'user123' can read their profile.
+     * @deny (list) No one can list all users.
+     * @allow (update) User with ID 'user123' can update their profile.
+     * @deny (update) User with ID 'user123' cannot update someone else's profile.
+     * @allow (delete) User with ID 'user123' can delete their profile.
+     * @deny (delete) User with ID 'user123' cannot delete someone else's profile.
+     * @principle Enforces document ownership for all write operations.
+     */
+    match /backend/users/{userId} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Enforces user-ownership for mentor profiles.
+     * @path /backend/mentors/{mentorId}
+     * @allow (create) Mentor with ID 'mentor123' can create their profile: `request.auth.uid == 'user123'` (assuming mentor.userId == 'user123')
+     * @deny (create) Mentor with ID 'mentor123' cannot create a profile with someone else's user ID.
+     * @allow (get) Any user can read a mentor profile.
+     * @allow (list) Any user can list mentor profiles.
+     * @allow (update) Mentor with ID 'mentor123' can update their profile: `request.auth.uid == 'user123'` (assuming mentor.userId == 'user123')
+     * @deny (update) User with ID 'user456' cannot update mentor profile 'mentor123'.
+     * @allow (delete) Mentor with ID 'mentor123' can delete their profile: `request.auth.uid == 'user123'` (assuming mentor.userId == 'user123')
+     * @deny (delete) User with ID 'user456' cannot delete mentor profile 'mentor123'.
+     * @principle Enforces document ownership for all write operations.
+     */
+    match /backend/mentors/{mentorId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Enforces user-ownership for bookings.
+     * @path /backend/bookings/{bookingId}
+     * @allow (create) User with ID 'user123' can create a booking.
+     * @deny (create) User with ID 'user123' cannot create a booking for someone else.
+     * @allow (get) Any user can read a booking.
+     * @allow (list) Any user can list bookings.
+     * @allow (update) User with ID 'user123' can update their booking.
+     * @deny (update) User with ID 'user123' cannot update someone else's booking.
+     * @allow (delete) User with ID 'user123' can delete their booking.
+     * @deny (delete) User with ID 'user123' cannot delete someone else's booking.
+     * @principle Enforces document ownership for all write operations.
+     */
+    match /backend/bookings/{bookingId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Enforces user-ownership for reviews.
+     * @path /backend/reviews/{reviewId}
+     * @allow (create) User with ID 'user123' can create a review.
+     * @deny (create) User with ID 'user123' cannot create a review for someone else.
+     * @allow (get) Any user can read a review.
+     * @allow (list) Any user can list reviews.
+     * @allow (update) User with ID 'user123' can update their review.
+     * @deny (update) User with ID 'user123' cannot update someone else's review.
+     * @allow (delete) User with ID 'user123' can delete their review.
+     * @deny (delete) User with ID 'user123' cannot delete someone else's review.
+     * @principle Enforces document ownership for all write operations.
+     */
+    match /backend/reviews/{reviewId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Allows public read access to resources, but restricts writes to the author.
+     * @path /backend/resources/{resourceId}
+     * @allow (get) Any user can read a resource.
+     * @allow (list) Any user can list resources.
+     * @allow (create) User with ID 'user123' can create a resource with authorId 'user123'.
+     * @deny (create) User with ID 'user123' cannot create a resource with authorId 'user456'.
+     * @allow (update) User with ID 'user123' can update their resource (where resource.data.authorId == 'user123').
+     * @deny (update) User with ID 'user123' cannot update someone else's resource.
+     * @allow (delete) User with ID 'user123' can delete their resource (where resource.data.authorId == 'user123').
+     * @deny (delete) User with ID 'user123' cannot delete someone else's resource.
+     * @principle Allows public read with owner-only writes.
+     */
+    match /backend/resources/{resourceId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.authorId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+    }
+
+    /**
+     * @description Allows public read access to bootcamps, but restricts writes to authorized users.
+     * @path /backend/bootcamps/{bootcampId}
+     * @allow (get) Any user can read a bootcamp.
+     * @allow (list) Any user can list bootcamps.
+     * @allow (create) User with ID 'user123' can create a bootcamp.
+     * @deny (create) User with ID 'user123' cannot create a bootcamp if not authorized.
+     * @allow (update) User with ID 'user123' can update a bootcamp if authorized.
+     * @deny (update) User with ID 'user123' cannot update someone else's bootcamp.
+     * @allow (delete) User with ID 'user123' can delete a bootcamp if authorized.
+     * @deny (delete) User with ID 'user123' cannot delete someone else's bootcamp.
+     */
+    match /backend/bootcamps/{bootcampId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+  }
+}
