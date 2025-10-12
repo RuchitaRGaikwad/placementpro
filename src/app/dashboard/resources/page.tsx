@@ -83,8 +83,8 @@ export default function ResourcesPage() {
         {resources.map((resource) => {
           const authorImage = getAuthorImage(resource.authorImageId);
           return (
-            <Card key={resource.id} className="h-full hover:border-primary transition-colors flex flex-col">
-              <Link href={`/dashboard/resources/${resource.id}`} className='flex flex-col flex-grow'>
+            <Link key={resource.id} href={`/dashboard/resources/${resource.id}`} className='flex'>
+              <Card className="h-full hover:border-primary transition-colors flex flex-col w-full">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -122,8 +122,8 @@ export default function ResourcesPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
           );
         })}
       </div>

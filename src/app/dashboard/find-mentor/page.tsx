@@ -65,39 +65,39 @@ export default function FindMentorPage() {
         {mentors.map((mentor) => {
           const mentorImage = getMentorImage(mentor.imageId);
           return (
-            <Card key={mentor.id} className="flex flex-col">
-                <Link href={`/dashboard/find-mentor/${mentor.id}`} className='flex flex-col flex-grow'>
-              <CardHeader className="flex-row items-start gap-4">
-                {mentorImage && (
-                  <Image
-                    src={mentorImage.imageUrl}
-                    alt={mentor.name}
-                    width={80}
-                    height={80}
-                    className="rounded-full border-2 border-primary"
-                    data-ai-hint={mentorImage.imageHint}
-                  />
-                )}
-                <div className="flex-grow">
-                  <CardTitle>{mentor.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    {mentor.role} at {mentor.company}
-                  </CardDescription>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="font-bold">{mentor.rating}</span>
+            <Card key={mentor.id} className="flex flex-col hover:border-primary transition-colors">
+              <Link href={`/dashboard/find-mentor/${mentor.id}`} className='flex flex-col flex-grow'>
+                <CardHeader className="flex-row items-start gap-4">
+                  {mentorImage && (
+                    <Image
+                      src={mentorImage.imageUrl}
+                      alt={mentor.name}
+                      width={80}
+                      height={80}
+                      className="rounded-full border-2 border-primary"
+                      data-ai-hint={mentorImage.imageHint}
+                    />
+                  )}
+                  <div className="flex-grow">
+                    <CardTitle>{mentor.name}</CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      {mentor.role} at {mentor.company}
+                    </CardDescription>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                      <span className="font-bold">{mentor.rating}</span>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-3">{mentor.bio}</p>
-                <div className="flex flex-wrap gap-2">
-                  {mentor.expertise.map((skill) => (
-                    <Badge key={skill} variant="secondary">{skill}</Badge>
-                  ))}
-                </div>
-              </CardContent>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-3">{mentor.bio}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mentor.expertise.map((skill) => (
+                      <Badge key={skill} variant="secondary">{skill}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
               </Link>
               <CardFooter className="flex items-center justify-between">
                 <div className="font-bold flex items-center">
@@ -105,7 +105,9 @@ export default function FindMentorPage() {
                     {mentor.pricePerSession}
                     <span className='text-sm font-normal text-muted-foreground'>/session</span>
                 </div>
-                <Button>Book Session</Button>
+                 <Button asChild>
+                    <Link href={`/dashboard/find-mentor/${mentor.id}`}>Book Session</Link>
+                </Button>
               </CardFooter>
             </Card>
           )

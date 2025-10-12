@@ -68,44 +68,46 @@ export default function BootcampsPage() {
         {bootcamps.map((bootcamp) => {
           const image = getBootcampImage(bootcamp.imageUrlId);
           return (
-            <Card key={bootcamp.id} className="flex flex-col group">
-                 <Link href={`/dashboard/bootcamps/${bootcamp.id}`} className='flex flex-col flex-grow'>
-              {image && (
-                <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                  <Image
-                    src={image.imageUrl}
-                    alt={bootcamp.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    data-ai-hint={image.imageHint}
-                  />
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle>{bootcamp.title}</CardTitle>
-                <CardDescription>
-                  <Badge variant="secondary">{bootcamp.category}</Badge>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {bootcamp.description}
-                </p>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{bootcamp.instructor}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Clock className="mr-2 h-4 w-4" />
-                  <span>{bootcamp.schedule}</span>
-                </div>
-              </CardContent>
+            <Card key={bootcamp.id} className="flex flex-col group hover:border-primary transition-colors">
+              <Link href={`/dashboard/bootcamps/${bootcamp.id}`} className='flex flex-col flex-grow'>
+                {image && (
+                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                    <Image
+                      src={image.imageUrl}
+                      alt={bootcamp.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      data-ai-hint={image.imageHint}
+                    />
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{bootcamp.title}</CardTitle>
+                  <CardDescription>
+                    <Badge variant="secondary">{bootcamp.category}</Badge>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {bootcamp.description}
+                  </p>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>{bootcamp.instructor}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>{bootcamp.schedule}</span>
+                  </div>
+                </CardContent>
               </Link>
               <CardFooter className="flex items-center justify-between">
                 <p className="text-xl font-bold font-headline">
                   ₹{bootcamp.price}
                 </p>
-                <Button>Enroll Now</Button>
+                <Button asChild>
+                    <Link href={`/dashboard/bootcamps/${bootcamp.id}`}>Enroll Now</Link>
+                </Button>
               </CardFooter>
             </Card>
           );
