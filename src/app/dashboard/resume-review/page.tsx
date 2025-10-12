@@ -1,32 +1,42 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResumeReviewForm } from "./ResumeReviewForm";
-import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { FileText } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ResumeReviewForm } from './ResumeReviewForm';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { FileText } from 'lucide-react';
 
-const heroImage = PlaceHolderImages.find((img) => img.id === 'resume-analysis-hero');
+const heroImage = PlaceHolderImages.find(
+  (img) => img.id === 'resume-analysis-hero'
+);
 
 export default function ResumeReviewPage() {
   return (
     <div className="space-y-8">
       <div className="grid gap-8 md:grid-cols-2 items-center">
         <div>
-          <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><FileText className="w-8 h-8"/> AI Resume Review</h1>
+          <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
+            <FileText className="w-8 h-8" /> AI Resume Review
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Get instant feedback on your resume. Upload your resume and paste a job description to see how well you match and where you can improve.
+            Get instant feedback on your resume. Upload your resume and paste a
+            job description to see how well you match and where you can improve.
           </p>
         </div>
         {heroImage && (
-            <div>
-                <Image
-                    src={heroImage.imageUrl}
-                    alt={heroImage.description}
-                    width={600}
-                    height={400}
-                    className="rounded-xl shadow-lg"
-                    data-ai-hint={heroImage.imageHint}
-                />
-            </div>
+          <div className="relative h-64 w-full md:h-full">
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              className="rounded-xl shadow-lg object-cover"
+              data-ai-hint={heroImage.imageHint}
+            />
+          </div>
         )}
       </div>
 
