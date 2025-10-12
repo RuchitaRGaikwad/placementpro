@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -52,9 +52,17 @@ const getMentorImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id);
 
 const BookingCard = ({ booking }: { booking: (typeof bookings)[0] }) => {
+  const [formattedDate, setFormattedDate] = useState('');
+  const [formattedTime, setFormattedTime] = useState('');
+
+  useEffect(() => {
+    const sessionDate = new Date(booking.date);
+    setFormattedDate(sessionDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    setFormattedTime(sessionDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+  }, [booking.date]);
+
+
   const mentorImage = getMentorImage(booking.mentorImageId);
-  const sessionDate = new Date(booking.date);
-  const isPast = sessionDate < new Date();
 
   const StatusBadge = () => {
     switch (booking.status) {
@@ -90,8 +98,17 @@ const BookingCard = ({ booking }: { booking: (typeof bookings)[0] }) => {
         </div>
         <div className='text-right'>
            <StatusBadge />
-           <p className='text-sm text-muted-foreground'>{sessionDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-           <p className='text-sm text-muted-foreground'>{sessionDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</p>
+           {formattedDate ? (
+            <>
+              <p className='text-sm text-muted-foreground'>{formattedDate}</p>
+              <p className='text-sm text-muted-foreground'>{formattedTime}</p>
+            </>
+           ) : (
+            <div className="space-y-1 mt-2">
+                <div className="h-4 w-48 bg-muted rounded-md animate-pulse"></div>
+                <div className="h-4 w-24 bg-muted rounded-md animate-pulse ml-auto"></div>
+            </div>
+           )}
         </div>
       </CardHeader>
       <CardContent className="flex justify-end items-center gap-2">
