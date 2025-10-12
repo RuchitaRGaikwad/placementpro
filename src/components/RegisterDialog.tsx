@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
@@ -45,6 +45,7 @@ type RegisterDialogProps = {
 export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
   const auth = useAuth();
   const router = useRouter();
+  const { user, isUserLoading } = useUser();
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,33 +54,30 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     defaultValues: { email: '', password: '', confirmPassword: '' },
   });
 
+  useEffect(() => {
+    // When registration is successful, the user object will be populated.
+    // The useUser hook handles session creation, so we just wait for the user object.
+    if (!isUserLoading && user && isSubmitting) {
+      onOpenChange(false); // Close the dialog
+      router.push('/dashboard'); // Redirect to dashboard
+    }
+  }, [user, isUserLoading, router, isSubmitting, onOpenChange]);
+
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
     setAuthError(null);
     setIsSubmitting(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const idToken = await userCredential.user.getIdToken();
-
-      const res = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: idToken,
-      });
-
-      if (res.ok) {
-        onOpenChange(false);
-        router.push('/dashboard');
-      } else {
-        setAuthError('Failed to create session. Please try again.');
-      }
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      // After this, the onIdTokenChanged listener in FirebaseProvider will trigger,
+      // which updates the `user` object from the `useUser` hook.
+      // The useEffect above will then handle the redirection.
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         setAuthError('This email is already registered. Please log in.');
       } else {
         setAuthError('An unexpected error occurred during registration.');
       }
-    } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false); // Only set to false on error.
     }
   }
 
@@ -108,7 +106,7 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
                         <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input placeholder="you@example.com" {...field} />
+                            <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -121,7 +119,7 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
                         <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -134,7 +132,7 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
                         <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>

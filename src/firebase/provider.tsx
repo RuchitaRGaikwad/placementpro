@@ -68,22 +68,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  // Effect to subscribe to Firebase auth state changes
+  // Effect to subscribe to Firebase auth state changes and manage session cookie
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
+    if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
     
-    // Set initial loading state correctly.
-    // If there's already a user from `auth.currentUser`, we are not technically "loading" in the sense of a first-time check.
-    // However, onIdTokenChanged will fire shortly after, so we keep it true to prevent flashes of unauthenticated content.
-    setUserAuthState({ user: auth.currentUser, isUserLoading: true, userError: null });
-
+    let lastToken: string | null = null;
+    
     const unsubscribe = onIdTokenChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
+      async (firebaseUser) => {
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+
+        if (firebaseUser) {
+          const currentToken = await firebaseUser.getIdToken();
+          // If token is new, update server session
+          if (currentToken !== lastToken) {
+            lastToken = currentToken;
+            await fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: currentToken,
+            });
+          }
+        } else {
+          // User signed out, clear server session
+          lastToken = null;
+          await fetch('/api/auth/session', { method: 'DELETE' });
+        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onIdTokenChanged error:", error);

@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeAdmin } from '@/firebase/admin';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
 
 export async function POST(request: NextRequest) {
   const { auth, firestore } = initializeAdmin();
@@ -14,17 +13,15 @@ export async function POST(request: NextRequest) {
   try {
     const decodedIdToken = await getAuth().verifyIdToken(idToken);
     
-    // Check if user exists in Firestore
     const userRef = firestore.collection('users').doc(decodedIdToken.uid);
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
-        // Create user document if it doesn't exist
         await userRef.set({
             id: decodedIdToken.uid,
             email: decodedIdToken.email,
             displayName: decodedIdToken.name || 'New User',
-            role: 'student', // Default role
+            role: 'student', 
             photoURL: decodedIdToken.picture || '',
         });
     }

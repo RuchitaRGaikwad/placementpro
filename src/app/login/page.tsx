@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/icons/logo';
 import Link from 'next/link';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
@@ -49,6 +49,7 @@ const registerSchema = z.object({
 export default function LoginPage() {
     const auth = useAuth();
     const router = useRouter();
+    const { user, isUserLoading } = useUser();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,34 +62,29 @@ export default function LoginPage() {
         resolver: zodResolver(registerSchema),
         defaultValues: { email: '', password: '', confirmPassword: '' },
     });
+
+    useEffect(() => {
+        // When the user object becomes available, redirect to dashboard.
+        // The useUser hook now handles session creation, so we just wait for the user.
+        if (!isUserLoading && user) {
+            router.push('/dashboard');
+        }
+    }, [user, isUserLoading, router]);
     
     async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken();
-            
-            const res = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-
-            if (res.ok) {
-                router.push('/dashboard');
-            } else {
-                 setAuthError('Failed to create session. Please try again.');
-            }
-
+            await signInWithEmailAndPassword(auth, values.email, values.password);
+            // No need to manually create session or redirect here.
+            // The useEffect hook will handle the redirect when `user` state updates.
         } catch (error: any) {
              if (error.code === 'auth/invalid-credential') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError('An unexpected error occurred. Please try again.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set to false on error.
         }
     }
 
@@ -96,28 +92,16 @@ export default function LoginPage() {
         setAuthError(null);
         setIsSubmitting(true);
        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken();
-            
-            const res = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-
-            if (res.ok) {
-                router.push('/dashboard');
-            } else {
-                 setAuthError('Failed to create session. Please try again.');
-            }
+            await createUserWithEmailAndPassword(auth, values.email, values.password);
+             // No need to manually create session or redirect here.
+            // The useEffect hook will handle the redirect when `user` state updates.
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
                 setAuthError('An unexpected error occurred during registration.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set to false on error.
         }
     }
 
