@@ -53,6 +53,18 @@
       "description": "Abstract visualization of data analysis.",
       "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e28f81?q=80&w=600&h=400&fit=crop",
       "imageHint": "data analysis"
+    },
+    {
+      "id": "dsa-bootcamp",
+      "description": "Code on a screen representing a DSA bootcamp",
+      "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d1469c5b?q=80&w=600&h=400&fit=crop",
+      "imageHint": "code screen"
+    },
+    {
+      "id": "pm-bootcamp",
+      "description": "Sticky notes on a board representing product management",
+      "imageUrl": "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=600&h=400&fit=crop",
+      "imageHint": "sticky notes"
     }
   ]
 }
