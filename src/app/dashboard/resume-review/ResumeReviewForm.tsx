@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +56,7 @@ export function ResumeReviewForm() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, formAction] = useFormState(reviewResumeAction, {
+  const [state, formAction] = useActionState(reviewResumeAction, {
     success: false,
     message: '',
   });
