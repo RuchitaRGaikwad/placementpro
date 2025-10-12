@@ -14,14 +14,7 @@ export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
     >
       <rect width="32" height="32" rx="8" fill="currentColor" />
       <path
-        d="M12 18.5V9H16.5C18.9853 9 21 11.0147 21 13.5C21 15.9853 18.9853 18 16.5 18H14"
-        stroke="hsl(var(--primary-foreground))"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 23L12 18.5"
+        d="M13 9V23H17V17C17 14.7909 18.7909 13 21 13H21"
         stroke="hsl(var(--primary-foreground))"
         strokeWidth="2"
         strokeLinecap="round"
