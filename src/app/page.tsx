@@ -41,7 +41,6 @@ const registerSchema = z.object({
 
 function LoginForm() {
     const auth = useAuth();
-    const router = useRouter();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,7 +61,8 @@ function LoginForm() {
             } else {
                 setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
-            setIsSubmitting(false); // Only set submitting to false on error, otherwise let the redirect happen
+        } finally {
+            setIsSubmitting(false); 
         }
     }
 
@@ -106,7 +106,6 @@ function LoginForm() {
 
 function RegisterForm() {
     const auth = useAuth();
-    const router = useRouter();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -127,7 +126,8 @@ function RegisterForm() {
             } else {
                 setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
-            setIsSubmitting(false); // Only set submitting to false on error
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -182,18 +182,24 @@ function RegisterForm() {
     );
 }
 
+// Define props for the page component to avoid direct searchParams access issues.
+interface LoginPageProps {
+    searchParams?: { [key: string]: string | string[] | undefined };
+}
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: LoginPageProps) {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
 
     useEffect(() => {
+        // If the user is loaded and exists, redirect to the dashboard.
         if (!isUserLoading && user) {
             router.push('/dashboard');
         }
     }, [isUserLoading, user, router]);
 
-    if (isUserLoading || (!isUserLoading && user)) {
+    // Show a loading spinner while checking for user or if user exists (during redirect).
+    if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -201,7 +207,7 @@ export default function LoginPage() {
         );
     }
 
-
+  // If user is not loading and does not exist, show the login UI.
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <div className="w-full max-w-md space-y-4 px-4">
