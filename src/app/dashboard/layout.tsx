@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Avatar,
   AvatarFallback,
@@ -41,7 +41,9 @@ import {
   History
 } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUser, useAuth } from '@/firebase';
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const navItems = [
   {
@@ -81,7 +83,6 @@ const navItems = [
   },
 ];
 
-const userImage = PlaceHolderImages.find((img) => img.id === 'mentor-1');
 
 export default function DashboardLayout({
   children,
@@ -89,6 +90,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [isUserLoading, user, router]);
+
+  const handleLogout = () => {
+    auth.signOut();
+  };
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
   
   return (
     <SidebarProvider>
@@ -107,7 +129,6 @@ export default function DashboardLayout({
               <SidebarMenuItem key={item.label}>
                 <Link href={item.href}>
                   <SidebarMenuButton
-                    as="a"
                     isActive={pathname === item.href}
                     tooltip={item.label}
                   >
@@ -135,16 +156,15 @@ export default function DashboardLayout({
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={userImage?.imageUrl}
-                      alt="User avatar"
-                      data-ai-hint={userImage?.imageHint}
+                      src={user?.photoURL || ''}
+                      alt={user?.displayName || 'User avatar'}
                     />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2" />
@@ -155,7 +175,7 @@ export default function DashboardLayout({
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2" />
                   <span>Log out</span>
                 </DropdownMenuItem>

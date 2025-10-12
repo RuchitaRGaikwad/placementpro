@@ -1,3 +1,4 @@
+'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +39,7 @@ const mentor = {
       studentImageId: 'mentor-2',
       rating: 5,
       comment:
-        'Aditya\'s session was a game-changer. His insights into system design are unparalleled. He broke down complex topics into understandable chunks. Highly recommended!',
+        "Aditya's session was a game-changer. His insights into system design are unparalleled. He broke down complex topics into understandable chunks. Highly recommended!",
     },
     {
       id: 2,

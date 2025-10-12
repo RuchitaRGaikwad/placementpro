@@ -1,3 +1,6 @@
+
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -8,6 +11,9 @@ import {
   GraduationCap,
   Users,
   Zap,
+  LayoutDashboard,
+  CalendarCheck,
+  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -20,6 +26,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/icons/logo';
+import { useUser } from '@/firebase';
 
 const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 const featureResume = PlaceHolderImages.find(
@@ -80,7 +87,17 @@ const features = [
   },
 ];
 
+const quickLinks = [
+    { title: 'Review Your Resume', href: '/dashboard/resume-review', icon: FileText },
+    { title: 'Find a Mentor', href: '/dashboard/find-mentor', icon: Activity },
+    { title: 'View Bookings', href: '/dashboard/bookings', icon: CalendarCheck },
+    { title: 'Explore Resources', href: '/dashboard/resources', icon: BookOpen },
+];
+
+
 export default function HomePage() {
+  const { user, isUserLoading } = useUser();
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -102,16 +119,33 @@ export default function HomePage() {
             >
               Mentors
             </Link>
+             <Link
+              href="/dashboard"
+              className="text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              Dashboard
+            </Link>
           </nav>
           <div className="flex flex-1 items-center justify-end gap-2">
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard">Log In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/dashboard">
-                Sign Up <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {!isUserLoading && !user && (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/login">
+                    Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
+             {!isUserLoading && user && (
+                <Button asChild>
+                  <Link href="/dashboard">
+                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+             )}
           </div>
         </div>
       </header>
@@ -158,7 +192,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="features" className="py-20 bg-muted/50">
+        <section className="py-20 bg-muted/50">
+             <div className="container">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-headline flex items-center gap-2">
+                           <LayoutDashboard /> Dashboard
+                        </CardTitle>
+                        <CardDescription>
+                            Jump right back into your prep.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {quickLinks.map(link => (
+                            <Button key={link.title} variant="outline" className="h-24 flex-col justify-center gap-2" asChild>
+                                <Link href={link.href}>
+                                    <link.icon className="h-6 w-6 text-primary" />
+                                    <span className="text-sm font-medium text-center">{link.title}</span>
+                                </Link>
+                            </Button>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+        </section>
+
+
+        <section id="features" className="py-20">
           <div className="container">
             <div className="mx-auto max-w-2xl text-center mb-12">
               <h2 className="font-headline text-3xl md:text-4xl font-bold">
@@ -172,39 +232,41 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature) => (
                 <Card key={feature.title} className="overflow-hidden group">
-                  {feature.image && (
-                    <div className="relative">
-                      <Image
-                        src={feature.image.imageUrl}
-                        alt={feature.image.description}
-                        width={600}
-                        height={400}
-                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint={feature.image.imageHint}
-                      />
-                      {feature.isPremium && (
-                        <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
+                   <Link href={feature.link} className="flex flex-col h-full">
+                      {feature.image && (
+                        <div className="relative">
+                          <Image
+                            src={feature.image.imageUrl}
+                            alt={feature.image.description}
+                            width={600}
+                            height={400}
+                            className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                            data-ai-hint={feature.image.imageHint}
+                          />
+                          {feature.isPremium && (
+                            <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="mb-4">{feature.icon}</div>
-                    <CardTitle className="font-headline">
-                      {feature.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </CardContent>
+                      <CardHeader>
+                        <div className="mb-4">{feature.icon}</div>
+                        <CardTitle className="font-headline">
+                          {feature.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className='flex-grow'>
+                        <p className="text-sm text-muted-foreground">
+                          {feature.description}
+                        </p>
+                      </CardContent>
+                   </Link>
                 </Card>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="mentors" className="py-20">
+        <section id="mentors" className="py-20 bg-muted/50">
           <div className="container text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold">
               Learn from the Best
@@ -263,7 +325,7 @@ export default function HomePage() {
               className="mt-8"
               asChild
             >
-              <Link href="/dashboard">
+              <Link href="/login">
                 Join PlacementPro Now
                 <ArrowRight className="ml-2" />
               </Link>
