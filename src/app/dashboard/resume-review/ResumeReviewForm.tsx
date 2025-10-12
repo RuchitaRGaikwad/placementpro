@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,12 +17,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useActionState, useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Star } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
@@ -55,6 +54,7 @@ function SubmitButton() {
 export function ResumeReviewForm() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const [state, formAction] = useActionState(reviewResumeAction, {
     success: false,
@@ -78,16 +78,23 @@ export function ResumeReviewForm() {
     }
   }, [state, form]);
 
+  useEffect(() => {
+    if (analysisResult) {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [analysisResult]);
+
+
   return (
     <div className="space-y-8">
       <Form {...form}>
         <form ref={formRef} action={formAction} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
+             <FormField
               control={form.control}
               name="resume"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="md:col-span-2">
                   <FormLabel>Your Resume (PDF)</FormLabel>
                   <FormControl>
                     <Input
@@ -132,6 +139,7 @@ export function ResumeReviewForm() {
       </Form>
       
       {analysisResult && (
+        <div ref={resultsRef} className="pt-8">
         <Card className="mt-8 border-primary">
           <CardHeader>
             <CardTitle className="text-2xl font-headline flex items-center gap-2">
@@ -149,7 +157,7 @@ export function ResumeReviewForm() {
                 <h3 className="font-semibold text-lg flex items-center">
                   <Bot className="mr-2 h-5 w-5" /> AI-Powered Improvement Suggestions
                 </h3>
-                <div className="prose prose-sm max-w-none text-muted-foreground p-4 border rounded-md bg-background">
+                <div className="prose prose-sm max-w-none text-muted-foreground p-4 border rounded-md bg-background h-48 overflow-y-auto">
                   <p>{analysisResult.improvements}</p>
                 </div>
               </div>
@@ -175,6 +183,7 @@ export function ResumeReviewForm() {
             </Card>
           </CardContent>
         </Card>
+        </div>
       )}
     </div>
   );

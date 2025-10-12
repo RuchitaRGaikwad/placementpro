@@ -28,12 +28,12 @@ export default function ResumeReviewPage() {
           </p>
         </div>
         {heroImage && (
-          <div className="relative h-64 w-full md:h-full">
+          <div className="relative h-64 w-full rounded-xl shadow-lg overflow-hidden">
             <Image
               src={heroImage.imageUrl}
               alt={heroImage.description}
               fill
-              className="rounded-xl shadow-lg object-cover"
+              className="object-cover"
               data-ai-hint={heroImage.imageHint}
             />
           </div>
