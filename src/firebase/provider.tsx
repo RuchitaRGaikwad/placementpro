@@ -3,7 +3,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onIdTokenChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -76,13 +76,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
 
-    const unsubscribe = onAuthStateChanged(
+    const unsubscribe = onIdTokenChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
+      async (firebaseUser) => { // Auth state determined
+        if (firebaseUser) {
+          const idToken = await firebaseUser.getIdToken();
+          // Send token to server to create session cookie
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: idToken,
+          });
+        } else {
+          // User signed out, clear session cookie
+          await fetch('/api/auth/session', { method: 'DELETE' });
+        }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => { // Auth listener error
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
+        console.error("FirebaseProvider: onIdTokenChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );

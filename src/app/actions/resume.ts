@@ -2,10 +2,10 @@
 
 import { z } from 'zod';
 import { analyzeResume } from '@/ai/flows/ai-resume-review';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { initializeAdmin } from '@/firebase/admin';
+import { getAuth } from 'firebase-admin/auth';
+import { cookies } from 'next/headers';
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, { message: 'Job description must be at least 50 characters long.' }),
@@ -25,12 +25,22 @@ export async function reviewResumeAction(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const { auth, firestore } = initializeFirebase();
-  const currentUser = auth.currentUser;
-
-  if (!currentUser) {
+  const { firestore } = initializeAdmin();
+  
+  const sessionCookie = cookies().get('__session')?.value;
+  if (!sessionCookie) {
     return { success: false, message: 'You must be logged in to review a resume.' };
   }
+
+  let decodedToken;
+  try {
+    decodedToken = await getAuth().verifySessionCookie(sessionCookie, true);
+  } catch (error) {
+    return { success: false, message: 'Your session is invalid. Please log in again.' };
+  }
+  
+  const currentUserUid = decodedToken.uid;
+
 
   const validatedFields = resumeSchema.safeParse({
     jobDescription: formData.get('jobDescription'),
@@ -64,13 +74,13 @@ export async function reviewResumeAction(
       jobDescription,
     });
     
-    // Save analysis to Firestore
-    const analysisId = doc(firestore, 'users', currentUser.uid, 'resumeAnalyses', 'temp-id').id;
-    const analysisRef = doc(firestore, 'users', currentUser.uid, 'resumeAnalyses', analysisId);
+    const analysesCollection = doc(firestore, 'users', currentUserUid, 'resumeAnalyses', 'some-id').parent;
+    const analysisId = doc(analysesCollection).id;
+    const analysisRef = doc(firestore, 'users', currentUserUid, 'resumeAnalyses', analysisId);
     
     await setDoc(analysisRef, {
       id: analysisId,
-      userId: currentUser.uid,
+      userId: currentUserUid,
       jobDescription,
       matchScore: analysis.matchScore,
       improvements: analysis.improvements,

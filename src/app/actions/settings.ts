@@ -1,9 +1,11 @@
 'use server';
 
 import { z } from 'zod';
-import { initializeFirebase } from '@/firebase';
+import { initializeAdmin } from '@/firebase/admin';
 import { doc, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+import { getAuth } from 'firebase-admin/auth';
+import { cookies } from 'next/headers';
 
 const settingsSchema = z.object({
   displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
@@ -20,12 +22,22 @@ export async function updateSettingsAction(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const { auth, firestore } = initializeFirebase();
-  const currentUser = auth.currentUser;
-
-  if (!currentUser) {
+  const { firestore } = initializeAdmin();
+  
+  const sessionCookie = cookies().get('__session')?.value;
+  if (!sessionCookie) {
     return { success: false, message: 'You must be logged in to update settings.' };
   }
+
+  let decodedToken;
+  try {
+    decodedToken = await getAuth().verifySessionCookie(sessionCookie, true);
+  } catch (error) {
+    return { success: false, message: 'Your session is invalid. Please log in again.' };
+  }
+  
+  const currentUserUid = decodedToken.uid;
+
 
   const validatedFields = settingsSchema.safeParse({
     displayName: formData.get('displayName'),
@@ -45,7 +57,7 @@ export async function updateSettingsAction(
   const { displayName, photoURL, resumeURL } = validatedFields.data;
 
   try {
-    const userRef = doc(firestore, 'users', currentUser.uid);
+    const userRef = doc(firestore, 'users', currentUserUid);
 
     const dataToUpdate: { displayName: string, photoURL?: string, resumeURL?: string } = {
         displayName
