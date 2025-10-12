@@ -36,7 +36,7 @@ const featureMentors = PlaceHolderImages.find(
   (img) => img.id === 'feature-mentors'
 );
 const featureResources = PlaceHolderImages.find(
-  (img) => img.id === 'feature-resources'
+  (img) => img.id === 'team-collaboration'
 );
 const featureBootcamps = PlaceHolderImages.find(
   (img) => img.id === 'feature-bootcamps'
@@ -103,7 +103,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo className="h-8 w-8" />
+            <Logo className="h-8 w-8 text-primary" />
             <span className="font-bold font-headline text-xl">PlacementPro</span>
           </Link>
           <nav className="hidden flex-1 items-center gap-6 text-sm font-medium md:flex">
