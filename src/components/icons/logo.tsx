@@ -15,11 +15,11 @@ export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
       <rect width="32" height="32" rx="8" fill="currentColor" />
       <path
         d="M12 10H17C18.6569 10 20 11.3431 20 13C20 14.6569 18.6569 16 17 16H12V10Z"
-        fill="hsl(var(--primary-foreground))"
+        fill="hsl(var(--sidebar-background))"
       />
       <path
         d="M12 10V22"
-        stroke="hsl(var(--primary-foreground))"
+        stroke="hsl(var(--sidebar-background))"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
