@@ -56,9 +56,9 @@
     },
     {
       "id": "dsa-book-cover",
-      "description": "An abstract visualization of data structures and algorithms, with code and graph-like structures.",
-      "imageUrl": "https://images.unsplash.com/photo-1550439062-609e1531270e?q=80&w=800&h=600&fit=crop",
-      "imageHint": "abstract code"
+      "description": "Data structures and algorithms content displayed on a laptop screen.",
+      "imageUrl": "https://images.unsplash.com/photo-1605379399642-870262d3d051?q=80&w=800&h=600&fit=crop",
+      "imageHint": "code laptop"
     },
     {
       "id": "pm-bootcamp",
