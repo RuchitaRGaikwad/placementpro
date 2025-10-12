@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "Students collaborating over laptops.",
+      "imageUrl": "https://picsum.photos/seed/100/1200/800",
+      "imageHint": "students collaboration"
+    },
+    {
+      "id": "feature-resume-review",
+      "description": "A professional resume being reviewed.",
+      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageHint": "resume review"
+    },
+    {
+      "id": "feature-mentors",
+      "description": "A mentor guiding a student.",
+      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageHint": "mentor guidance"
+    },
+    {
+      "id": "feature-resources",
+      "description": "A digital library of resources.",
+      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageHint": "digital library"
+    },
+    {
+      "id": "feature-bootcamps",
+      "description": "A group of students in an online bootcamp.",
+      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageHint": "online bootcamp"
+    },
+    {
+      "id": "mentor-1",
+      "description": "Profile picture of a mentor.",
+      "imageUrl": "https://picsum.photos/seed/105/200/200",
+      "imageHint": "professional portrait"
+    },
+    {
+      "id": "mentor-2",
+      "description": "Profile picture of a mentor.",
+      "imageUrl": "https://picsum.photos/seed/106/200/200",
+      "imageHint": "professional woman"
+    },
+    {
+      "id": "mentor-3",
+      "description": "Profile picture of a mentor.",
+      "imageUrl": "https://picsum.photos/seed/107/200/200",
+      "imageHint": "software engineer"
+    },
+    {
+      "id": "resume-analysis-hero",
+      "description": "Abstract visualization of data analysis.",
+      "imageUrl": "https://picsum.photos/seed/108/600/400",
+      "imageHint": "data analysis"
+    }
+  ]
 }
