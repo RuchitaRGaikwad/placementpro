@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -27,6 +28,7 @@ import Link from 'next/link';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 
 const loginSchema = z.object({
@@ -48,6 +50,7 @@ export default function LoginPage() {
     const auth = useAuth();
     const router = useRouter();
     const [authError, setAuthError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -61,29 +64,60 @@ export default function LoginPage() {
     
     async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
         setAuthError(null);
+        setIsSubmitting(true);
         try {
-            await signInWithEmailAndPassword(auth, values.email, values.password);
-            router.push('/dashboard');
+            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken();
+            
+            const res = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+
+            if (res.ok) {
+                router.push('/dashboard');
+            } else {
+                 setAuthError('Failed to create session. Please try again.');
+            }
+
         } catch (error: any) {
              if (error.code === 'auth/invalid-credential') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError('An unexpected error occurred. Please try again.');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
     async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
         setAuthError(null);
+        setIsSubmitting(true);
        try {
-            await createUserWithEmailAndPassword(auth, values.email, values.password);
-            router.push('/dashboard');
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken();
+            
+            const res = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+
+            if (res.ok) {
+                router.push('/dashboard');
+            } else {
+                 setAuthError('Failed to create session. Please try again.');
+            }
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
                 setAuthError('An unexpected error occurred during registration.');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -119,7 +153,7 @@ export default function LoginPage() {
                             <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="you@example.com" {...field} />
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -132,13 +166,15 @@ export default function LoginPage() {
                             <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
                         />
-                        <Button type="submit" className="w-full">Login</Button>
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Login'}
+                        </Button>
                     </form>
                 </Form>
               </TabsContent>
@@ -152,7 +188,7 @@ export default function LoginPage() {
                             <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="you@example.com" {...field} />
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -165,7 +201,7 @@ export default function LoginPage() {
                             <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -178,13 +214,15 @@ export default function LoginPage() {
                             <FormItem>
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
                         />
-                        <Button type="submit" className="w-full">Create Account</Button>
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                           {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                        </Button>
                     </form>
                 </Form>
               </TabsContent>

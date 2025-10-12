@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -62,7 +63,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
-    user: null,
+    user: auth.currentUser,
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
@@ -73,24 +74,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
-
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    
+    // Set initial loading state correctly.
+    // If there's already a user from `auth.currentUser`, we are not technically "loading" in the sense of a first-time check.
+    // However, onIdTokenChanged will fire shortly after, so we keep it true to prevent flashes of unauthenticated content.
+    setUserAuthState({ user: auth.currentUser, isUserLoading: true, userError: null });
 
     const unsubscribe = onIdTokenChanged(
       auth,
-      async (firebaseUser) => { // Auth state determined
-        if (firebaseUser) {
-          const idToken = await firebaseUser.getIdToken();
-          // Send token to server to create session cookie
-          await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: idToken,
-          });
-        } else {
-          // User signed out, clear session cookie
-          await fetch('/api/auth/session', { method: 'DELETE' });
-        }
+      (firebaseUser) => { // Auth state determined
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => { // Auth listener error
