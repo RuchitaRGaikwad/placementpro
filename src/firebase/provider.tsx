@@ -77,8 +77,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     
     const unsubscribe = onIdTokenChanged(
       auth,
-      (firebaseUser) => {
+      async (firebaseUser) => {
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        if (firebaseUser) {
+          const token = await firebaseUser.getIdToken();
+          // This fetch is crucial for creating the server-side session cookie.
+          // We don't need to await it or handle its response here because its
+          // purpose is to set a cookie, and subsequent server requests will use it.
+          fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: token,
+          });
+        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onIdTokenChanged error:", error);
