@@ -12,14 +12,9 @@ export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
       className={cn('text-primary', className)}
       {...props}
     >
-      <rect width="32" height="32" rx="8" fill="currentColor" />
-      <path
-        d="M13 9V23H17V17C17 14.7909 18.7909 13 21 13H21"
-        stroke="hsl(var(--primary-foreground))"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+        <rect width="32" height="32" rx="8" fill="currentColor" />
+        <path d="M13 23V9H18C20.2091 9 22 10.7909 22 13C22 15.2091 20.2091 17 18 17H13" stroke="hsl(var(--primary-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M17.5 17.5L22 13" stroke="hsl(var(--primary-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
