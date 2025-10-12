@@ -55,14 +55,8 @@
       "imageHint": "data analysis"
     },
     {
-      "id": "dsa-bootcamp",
-      "description": "Code on a screen representing a DSA bootcamp",
-      "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d1469c5b?q=80&w=600&h=400&fit=crop",
-      "imageHint": "code screen"
-    },
-    {
       "id": "dsa-book-cover",
-      "description": "A book cover for a Data Structures and Algorithms reference book.",
+      "description": "A classic reference book cover for Data Structures and Algorithms.",
       "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&h=600&fit=crop",
       "imageHint": "book cover"
     },
