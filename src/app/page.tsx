@@ -54,28 +54,15 @@ function LoginForm() {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken(true);
-            const response = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-
-            if (response.ok) {
-                router.push('/dashboard');
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create session.');
-            }
+            await signInWithEmailAndPassword(auth, values.email, values.password);
+            // The onIdTokenChanged listener in FirebaseProvider will handle session creation and redirection.
         } catch (error: any) {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set submitting to false on error, otherwise let the redirect happen
         }
     }
 
@@ -132,27 +119,15 @@ function RegisterForm() {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken(true);
-            const response = await fetch('/api/auth/session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: idToken,
-            });
-            if (response.ok) {
-                router.push('/dashboard');
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create session on registration.');
-            }
+            await createUserWithEmailAndPassword(auth, values.email, values.password);
+            // The onIdTokenChanged listener in FirebaseProvider will handle session creation and redirection.
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set submitting to false on error
         }
     }
 
