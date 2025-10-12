@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/provider';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
@@ -58,7 +58,7 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     setIsSubmitting(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const idToken = await userCredential.user.getIdToken();
+      const idToken = await userCredential.user.getIdToken(true); // force refresh
       
       const response = await fetch('/api/auth/session', {
         method: 'POST',
@@ -78,7 +78,8 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
       } else {
         setAuthError(error.message || 'An unexpected error occurred during registration.');
       }
-      setIsSubmitting(false);
+    } finally {
+        setIsSubmitting(false);
     }
   }
 

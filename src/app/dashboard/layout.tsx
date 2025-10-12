@@ -42,7 +42,7 @@ import {
   History
 } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
-import { useUser } from '@/firebase';
+import { useUser } from '@/firebase/provider';
 import { getAuth } from 'firebase/auth';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';

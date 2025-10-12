@@ -1,6 +1,6 @@
 'use client';
 
-import { useCollection, useUser, useMemoFirebase, useFirestore } from '@/firebase';
+import { useCollection, useUser, useMemoFirebase, useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

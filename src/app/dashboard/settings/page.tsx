@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { updateSettingsAction } from '@/app/actions/settings';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';

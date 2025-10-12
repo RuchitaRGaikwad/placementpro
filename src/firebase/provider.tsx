@@ -44,7 +44,7 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult { 
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -79,16 +79,16 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       async (firebaseUser) => {
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        
+        // This fetch is crucial for creating the server-side session cookie.
+        // It's called whenever the user's token changes (login, refresh).
         if (firebaseUser) {
           const token = await firebaseUser.getIdToken();
-          // This fetch is crucial for creating the server-side session cookie.
-          // We don't need to await it or handle its response here because its
-          // purpose is to set a cookie, and subsequent server requests will use it.
           fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: token,
-          });
+          }).catch(err => console.error("Failed to create session on token change", err));
         }
       },
       (error) => { // Auth listener error
@@ -180,7 +180,7 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
+export const useUser = (): UserHookResult => {
+  const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };
 };

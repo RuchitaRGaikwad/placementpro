@@ -13,7 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/icons/logo';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase/provider';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -22,7 +22,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useAuth } from '@/firebase';
 
 
 const loginSchema = z.object({
@@ -56,7 +55,7 @@ function LoginForm() {
         setIsSubmitting(true);
         try {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken();
+            const idToken = await userCredential.user.getIdToken(true); // Force refresh
 
             const response = await fetch('/api/auth/session', {
                 method: 'POST',
@@ -136,7 +135,7 @@ function RegisterForm() {
         setIsSubmitting(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const idToken = await userCredential.user.getIdToken();
+            const idToken = await userCredential.user.getIdToken(true); // Force refresh
 
             const response = await fetch('/api/auth/session', {
                 method: 'POST',

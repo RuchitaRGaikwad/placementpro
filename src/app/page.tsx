@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/icons/logo';
-import { useUser } from '@/firebase';
+import { useUser } from '@/firebase/provider';
 import { RegisterDialog } from '@/components/RegisterDialog';
 import { useState } from 'react';
 
