@@ -63,12 +63,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
-    user: auth.currentUser,
+    user: null, // Initialize user as null
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
 
-  // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
     if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
@@ -78,17 +77,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onIdTokenChanged(
       auth,
       async (firebaseUser) => {
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-        
-        // This fetch is crucial for creating the server-side session cookie.
-        // It's called whenever the user's token changes (login, refresh).
         if (firebaseUser) {
-          const token = await firebaseUser.getIdToken();
-          fetch('/api/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: token,
-          }).catch(err => console.error("Failed to create session on token change", err));
+          // User is signed in.
+          setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+          
+          // Send token to server to create session.
+          try {
+            const token = await firebaseUser.getIdToken();
+            await fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: token,
+            });
+          } catch (err) {
+            console.error("Failed to create session on token change", err);
+            // Optionally handle this error, e.g., by signing the user out.
+          }
+        } else {
+          // User is signed out.
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
         }
       },
       (error) => { // Auth listener error
@@ -96,8 +103,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, [auth]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {

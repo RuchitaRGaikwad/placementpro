@@ -54,14 +54,15 @@ function LoginForm() {
         setIsSubmitting(true);
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
-            // The onIdTokenChanged listener in FirebaseProvider will handle the redirect.
+            // The onIdTokenChanged listener in FirebaseProvider will handle the redirect via the useEffect on the main page component.
         } catch (error: any) {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
-            setIsSubmitting(false); // Only set to false on error
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -125,7 +126,8 @@ function RegisterForm() {
             } else {
                 setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
-            setIsSubmitting(false); // Only set to false on error
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -185,15 +187,13 @@ export default function LoginPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
 
-    // Redirect if user is already logged in
     useEffect(() => {
         if (!isUserLoading && user) {
             router.push('/dashboard');
         }
     }, [isUserLoading, user, router]);
 
-    // A simple loading state while we check for an existing user or if we are redirecting
-    if (isUserLoading || user) {
+    if (isUserLoading || (!isUserLoading && user)) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
