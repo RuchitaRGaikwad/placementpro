@@ -54,7 +54,7 @@ const bootcamps = [
     schedule: 'Tue, Thu, Sat @ 8 PM IST',
     price: 3999,
     category: 'DSA',
-    imageUrlId: 'dsa-bootcamp',
+    imageUrlId: 'dsa-book-cover',
     curriculum: [
       'Arrays & Strings',
       'Linked Lists, Stacks & Queues',

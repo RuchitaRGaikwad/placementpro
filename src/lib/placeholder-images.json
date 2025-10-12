@@ -61,6 +61,12 @@
       "imageHint": "code screen"
     },
     {
+      "id": "dsa-book-cover",
+      "description": "A book cover for a Data Structures and Algorithms reference book.",
+      "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&h=600&fit=crop",
+      "imageHint": "book cover"
+    },
+    {
       "id": "pm-bootcamp",
       "description": "Sticky notes on a board representing product management",
       "imageUrl": "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=600&h=400&fit=crop",
