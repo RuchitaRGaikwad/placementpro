@@ -55,46 +55,48 @@ export async function updateSettingsAction(
   }
 
   const { displayName, photoURL, resumeURL } = validatedFields.data;
+  const userRef = firestore.collection('users').doc(currentUserUid);
 
   try {
-    const userRef = getFirestore().collection('users').doc(currentUserUid);
+    const userDoc = await userRef.get();
 
-    const dataToUpdate: { displayName: string, photoURL?: string, resumeURL?: string } = {
-        displayName
-    };
+    if (!userDoc.exists) {
+      // If the document doesn't exist, create it with all necessary fields.
+      const dataToSet: { displayName: string; photoURL?: string; resumeURL?: string; email: string; role: string, id: string } = {
+        id: currentUserUid,
+        displayName,
+        email: decodedToken.email || '',
+        role: 'student' // Assign a default role
+      };
+      if (photoURL) dataToSet.photoURL = photoURL;
+      if (resumeURL) dataToSet.resumeURL = resumeURL;
+      
+      await userRef.set(dataToSet);
+      revalidatePath('/dashboard/settings');
+      revalidatePath('/dashboard');
+      return { success: true, message: 'Profile created and saved successfully.' };
 
-    if (photoURL) {
-        dataToUpdate.photoURL = photoURL;
+    } else {
+        // If it exists, update it.
+        const dataToUpdate: { displayName: string, photoURL?: string, resumeURL?: string } = {
+            displayName
+        };
+        // Only include optional fields if they are provided, to avoid overwriting with empty strings
+        if (photoURL) {
+            dataToUpdate.photoURL = photoURL;
+        }
+        if (resumeURL) {
+            dataToUpdate.resumeURL = resumeURL;
+        }
+
+        await userRef.update(dataToUpdate);
+        revalidatePath('/dashboard/settings');
+        revalidatePath('/dashboard'); // To update avatar in layout
+        return { success: true, message: 'Settings updated successfully.' };
     }
 
-    if (resumeURL) {
-        dataToUpdate.resumeURL = resumeURL;
-    }
-
-    await userRef.update(dataToUpdate);
-
-    revalidatePath('/dashboard/settings');
-    revalidatePath('/dashboard'); // To update avatar in layout
-
-    return { success: true, message: 'Settings updated successfully.' };
   } catch (error) {
     console.error('Error updating settings:', error);
-    if ((error as any).code === 'permission-denied' || (error as any).code === 5) { // permission-denied or NOT_FOUND
-        // Create the document if it doesn't exist.
-        const userRef = getFirestore().collection('users').doc(currentUserUid);
-        const dataToSet: { displayName: string, photoURL?: string, resumeURL?: string, email: string, role: string } = {
-            displayName,
-            email: decodedToken.email || '',
-            role: 'student'
-        };
-        if (photoURL) dataToSet.photoURL = photoURL;
-        if (resumeURL) dataToSet.resumeURL = resumeURL;
-        
-        await userRef.set(dataToSet, { merge: true });
-        revalidatePath('/dashboard/settings');
-        revalidatePath('/dashboard');
-        return { success: true, message: 'Settings created and saved successfully.' };
-    }
     return {
       success: false,
       message: 'An unexpected error occurred. Please try again.',
