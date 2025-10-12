@@ -1,3 +1,4 @@
+
 import {
   BookOpen,
   Building2,
@@ -56,6 +57,9 @@ const resources = [
 const getAuthorImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id);
 
+const getHeroImage = () => PlaceHolderImages.find((img) => img.id === 'feature-resources');
+
+
 const ResourceIcon = ({ type }: { type: string }) => {
   if (type === 'experience') {
     return <Lightbulb className="h-6 w-6 text-primary" />;
@@ -64,19 +68,31 @@ const ResourceIcon = ({ type }: { type: string }) => {
 };
 
 export default function ResourcesPage() {
+  const heroImage = getHeroImage();
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-start">
+      <div className="grid gap-8 md:grid-cols-2 items-center">
         <div>
-          <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
-            <BookOpen className="w-8 h-8" /> Resource Library
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Access a community-driven library of interview experiences,
-            questions, and guides.
-          </p>
+            <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
+                <BookOpen className="w-8 h-8" /> Resource Library
+            </h1>
+            <p className="text-muted-foreground mt-2">
+                Access a community-driven library of interview experiences,
+                questions, and guides.
+            </p>
+             <Button className='mt-4'>Add a Resource</Button>
         </div>
-        <Button>Add a Resource</Button>
+        {heroImage && (
+            <div className="relative h-64 w-full rounded-xl shadow-lg overflow-hidden">
+                <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+                />
+            </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
