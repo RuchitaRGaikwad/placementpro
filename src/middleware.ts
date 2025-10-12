@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('__session');
 
-  const isAuthPage = pathname.startsWith('/login');
+  const isAuthPage = pathname === '/';
 
   if (sessionCookie) {
     if (isAuthPage) {
@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
   } else {
     if (!isAuthPage && pathname.startsWith('/dashboard')) {
         // If user is not logged in and tries to access a protected dashboard page, redirect to login
-        return NextResponse.redirect(new URL('/login', request.url));
+        return NextResponse.redirect(new URL('/', request.url));
     }
   }
  

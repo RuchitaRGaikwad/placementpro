@@ -1,22 +1,8 @@
 
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
-import {
-  ArrowRight,
-  BookOpen,
-  Briefcase,
-  FileText,
-  GraduationCap,
-  Users,
-  Zap,
-  LayoutDashboard,
-  CalendarCheck,
-  Activity,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Card,
   CardContent,
@@ -24,308 +10,255 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Logo } from '@/components/icons/logo';
-import { useUser } from '@/firebase/provider';
-import { RegisterDialog } from '@/components/RegisterDialog';
-import { useState } from 'react';
-
-const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
-const featureResume = PlaceHolderImages.find(
-  (img) => img.id === 'feature-resume-review'
-);
-const featureMentors = PlaceHolderImages.find(
-  (img) => img.id === 'feature-mentors'
-);
-const featureResources = PlaceHolderImages.find(
-  (img) => img.id === 'feature-resources'
-);
-const featureBootcamps = PlaceHolderImages.find(
-  (img) => img.id === 'feature-bootcamps'
-);
-
-const mentors = [
-  { name: 'Aditya Sharma', role: 'SDE II, Amazon', imageId: 'mentor-1' },
-  { name: 'Priya Singh', role: 'Product Manager, Google', imageId: 'mentor-2' },
-  { name: 'Rohan Verma', role: 'Data Scientist, Microsoft', imageId: 'mentor-3' },
-];
-
-const features = [
-  {
-    icon: <FileText className="h-8 w-8 text-primary" />,
-    title: 'AI Resume Review',
-    description:
-      'Get an instant match score and improvement tips for your resume against any job description.',
-    image: featureResume,
-    link: '/dashboard/resume-review',
-    isPremium: false,
-  },
-  {
-    icon: <Users className="h-8 w-8 text-primary" />,
-    title: '1-on-1 Mentorship',
-    description:
-      'Book mock interviews with verified mentors from top tech companies and get personalized feedback.',
-    image: featureMentors,
-    link: '/dashboard/find-mentor',
-    isPremium: true,
-  },
-  {
-    icon: <BookOpen className="h-8 w-8 text-primary" />,
-    title: 'Resource Library',
-    description:
-      'Access a community-driven library of interview experiences, questions, and learning materials.',
-    image: featureResources,
-    link: '/dashboard/resources',
-    isPremium: false,
-  },
-  {
-    icon: <GraduationCap className="h-8 w-8 text-primary" />,
-    title: 'Exclusive Bootcamps',
-    description:
-      'Enroll in expert-led bootcamps on topics like System Design, DSA, and more to fast-track your learning.',
-    image: featureBootcamps,
-    link: '/dashboard/bootcamps',
-    isPremium: true,
-  },
-];
-
-const quickLinks = [
-    { title: 'Review Your Resume', href: '/dashboard/resume-review', icon: FileText },
-    { title: 'Find a Mentor', href: '/dashboard/find-mentor', icon: Activity },
-    { title: 'View Bookings', href: '/dashboard/bookings', icon: CalendarCheck },
-    { title: 'Explore Resources', href: '/dashboard/resources', icon: BookOpen },
-];
+import Link from 'next/link';
+import { useUser, useAuth } from '@/firebase/provider';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 
-export default function HomePage() {
-  const { user, isUserLoading } = useUser();
-  const [isRegisterDialogOpen, setRegisterDialogOpen] = useState(false);
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
+const registerSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
+
+function LoginForm() {
+    const auth = useAuth();
+    const router = useRouter();
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<z.infer<typeof loginSchema>>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: '', password: '' },
+    });
+
+    async function onSubmit(values: z.infer<typeof loginSchema>) {
+        setAuthError(null);
+        setIsSubmitting(true);
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken(true);
+            const response = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+
+            if (response.ok) {
+                router.push('/dashboard');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create session.');
+            }
+        } catch (error: any) {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                setAuthError('Invalid email or password. Please try again.');
+            } else {
+                setAuthError(error.message || 'An unexpected error occurred. Please try again.');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : 'Login'}
+                </Button>
+            </form>
+        </Form>
+    );
+}
+
+function RegisterForm() {
+    const auth = useAuth();
+    const router = useRouter();
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<z.infer<typeof registerSchema>>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: { email: '', password: '', confirmPassword: '' },
+    });
+    
+    async function onSubmit(values: z.infer<typeof registerSchema>) {
+        setAuthError(null);
+        setIsSubmitting(true);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken(true);
+            const response = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+            if (response.ok) {
+                router.push('/dashboard');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create session on registration.');
+            }
+        } catch (error: any) {
+            if (error.code === 'auth/email-already-in-use') {
+                setAuthError('This email is already registered. Please log in.');
+            } else {
+                setAuthError(error.message || 'An unexpected error occurred during registration.');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                   {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                </Button>
+            </form>
+        </Form>
+    );
+}
+
+
+export default function LoginPage() {
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            router.push('/dashboard');
+        }
+    }, [isUserLoading, user, router]);
+
+    if (isUserLoading || (!isUserLoading && user)) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
 
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <RegisterDialog open={isRegisterDialogOpen} onOpenChange={setRegisterDialogOpen} />
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo className="h-8 w-8 text-primary" />
-            <span className="font-bold font-headline text-xl">PlacementPro</span>
-          </Link>
-          <nav className="hidden flex-1 items-center gap-6 text-sm font-medium md:flex">
-            <Link
-              href="#features"
-              className="text-primary transition-colors hover:text-primary/80"
-            >
-              Features
+    <div className="flex min-h-screen items-center justify-center bg-muted/50">
+      <div className="w-full max-w-md space-y-4 px-4">
+        <div className="flex justify-center">
+            <Link href="/" className="flex items-center gap-2">
+                <Logo className="h-8 w-8" />
+                <span className="font-bold font-headline text-xl">PlacementPro</span>
             </Link>
-            <Link
-              href="#mentors"
-              className="text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              Mentors
-            </Link>
-             <Link
-              href="/dashboard"
-              className="text-primary transition-colors hover:text-primary/80"
-            >
-              Dashboard
-            </Link>
-          </nav>
-          <div className="flex flex-1 items-center justify-end gap-2">
-            {!isUserLoading && !user && (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/login">Log In</Link>
-                </Button>
-                <Button onClick={() => setRegisterDialogOpen(true)}>
-                    Sign Up <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </>
-            )}
-             {!isUserLoading && user && (
-                <Button asChild>
-                  <Link href="/dashboard">
-                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-             )}
-          </div>
         </div>
-      </header>
-
-      <main className="flex-1">
-        <section className="py-20 md:py-32">
-          <div className="container grid grid-cols-1 gap-12 md:grid-cols-2 items-center">
-            <div className="flex flex-col items-start gap-6">
-              <Badge variant="outline" className="py-1 px-3">
-                <Zap className="mr-2 h-4 w-4 text-accent" />
-                From College to Career
-              </Badge>
-              <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
-                Your Gateway to Top Tech Careers in India
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                PlacementPro is a comprehensive platform designed to help Indian college students crack placements at top companies. We provide AI-powered tools, a community-driven knowledge base, and premium mentorship to give you the edge you need.
-              </p>
-              <div className="flex gap-4">
-                <Button size="lg" onClick={() => setRegisterDialogOpen(true)}>
-                    Get Started Free <ArrowRight className="ml-2" />
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="#features">Learn More</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              {heroImage && (
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  width={1200}
-                  height={800}
-                  className="rounded-xl shadow-2xl"
-                  data-ai-hint={heroImage.imageHint}
-                />
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section id="features" className="py-20 bg-muted/50">
-          <div className="container">
-            <div className="mx-auto max-w-2xl text-center mb-12">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">
-                An Ecosystem for Success
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Everything you need to land your dream job, all in one
-                platform.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature) => (
-                <Card key={feature.title} className="overflow-hidden group">
-                   <Link href={feature.link} className="flex flex-col h-full">
-                      {feature.image && (
-                        <div className="relative">
-                          <Image
-                            src={feature.image.imageUrl}
-                            alt={feature.image.description}
-                            width={600}
-                            height={400}
-                            className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                            data-ai-hint={feature.image.imageHint}
-                          />
-                          {feature.isPremium && (
-                            <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
-                          )}
-                        </div>
-                      )}
-                      <CardHeader>
-                        <div className="mb-4">{feature.icon}</div>
-                        <CardTitle className="font-headline">
-                          {feature.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className='flex-grow'>
-                        <p className="text-sm text-muted-foreground">
-                          {feature.description}
-                        </p>
-                      </CardContent>
-                   </Link>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="mentors" className="py-20">
-          <div className="container text-center">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              Learn from the Best
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our mentors are seasoned professionals from your dream companies,
-              ready to guide you.
-            </p>
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-              {mentors.map((mentor) => {
-                const mentorImage = PlaceHolderImages.find(
-                  (img) => img.id === mentor.imageId
-                );
-                return (
-                  <Card key={mentor.name} className="text-center">
-                    <CardContent className="p-6">
-                      {mentorImage && (
-                        <Image
-                          src={mentorImage.imageUrl}
-                          alt={mentor.name}
-                          width={100}
-                          height={100}
-                          className="rounded-full mx-auto mb-4 border-4 border-muted"
-                          data-ai-hint={mentorImage.imageHint}
-                        />
-                      )}
-                      <h3 className="font-bold text-lg font-headline">
-                        {mentor.name}
-                      </h3>
-                      <p className="text-sm text-primary">{mentor.role}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-            <Button size="lg" className="mt-12" asChild>
-              <Link href="/dashboard/find-mentor">
-                Browse All Mentors <ArrowRight className="ml-2" />
-              </Link>
-            </Button>
-          </div>
-        </section>
-
-        <section className="py-20 bg-primary text-primary-foreground">
-          <div className="container text-center">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">
-              Ready to Kickstart Your Career?
-            </h2>
-            <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto">
-              Join thousands of students on the path to their dream jobs.
-              Create your free account today.
-            </p>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="mt-8"
-              onClick={() => setRegisterDialogOpen(true)}
-            >
-                Join PlacementPro Now
-                <ArrowRight className="ml-2" />
-            </Button>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t">
-        <div className="container py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Logo className="h-6 w-6" />
-            <p className="text-sm text-muted-foreground font-headline">
-              &copy; {new Date().getFullYear()} PlacementPro. All rights reserved.
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground">
-              Terms of Service
-            </Link>
-            <Link href="#" className="hover:text-foreground">
-              Privacy Policy
-            </Link>
-          </div>
-        </div>
-      </footer>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Welcome</CardTitle>
+            <CardDescription>
+              Sign in or create an account to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login" className="pt-6">
+                <LoginForm />
+              </TabsContent>
+              <TabsContent value="register" className="pt-6">
+                 <RegisterForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-    
-
-    
