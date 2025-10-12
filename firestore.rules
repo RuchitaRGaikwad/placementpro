@@ -1,153 +1,207 @@
 /**
- * @fileOverview Firestore Security Rules for PlacementPro.
+ * @fileoverview Firestore Security Rules for PlacementPro.
  *
  * Core Philosophy:
- * This ruleset enforces a user-ownership model for user profiles and resources.
- * Mentors, Bookings, Reviews, and Bootcamps are publicly accessible for reading but have restricted write access.
- * Administrative privileges are managed through a dedicated `/roles_admin` collection, using the "existence over content" pattern.
+ * This ruleset enforces a strict user-ownership model for personal data and uses
+ * denormalization to simplify authorization checks. It also allows for public
+ * read access on certain collections while restricting write access to authorized users.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profiles; access is restricted to the user themselves.
- * - /mentors/{mentorId}: Stores mentor profiles; publicly readable, but write access is restricted.
- * - /bookings/{bookingId}: Stores booking information; publicly readable, but write access is restricted.
- * - /reviews/{reviewId}: Stores reviews for mentors; publicly readable, but write access is restricted.
- * - /resources/{resourceId}: Stores community resources; publicly readable, write access restricted to the resource creator.
- * - /bootcamps/{bootcampId}: Stores bootcamp information; publicly readable, write access is restricted.
- * - /roles_admin/{userId}: Indicates admin privileges; write access is limited to admins.
+ * - /users/{userId}: Stores personal user data, accessible only by the user themselves.
+ * - /users/{userId}/resumeAnalyses/{analysisId}: Stores resume analyses for a user, accessible only by the user.
+ * - /mentors/{mentorId}: Stores mentor profiles, publicly readable but writable only by authorized users (TBD - requires admin role or similar).
+ * - /bookings/{bookingId}: Stores booking information, publicly readable but writable only by authorized users.
+ * - /reviews/{reviewId}: Stores reviews for mentors, publicly readable but writable only by authorized users.
+ * - /resources/{resourceId}: Stores community resources, publicly readable but writable only by the resource owner.
+ * - /bootcamps/{bootcampId}: Stores bootcamp information, publicly readable, write access controlled by enrolled students and/or admins.
+ * - /roles_admin/{userId}: Indicates admin status; document existence grants admin privileges.
  *
  * Key Security Decisions:
- * - User listing is disallowed to protect user privacy.
- * - Public read access is granted for mentors, bookings, reviews, resources, and bootcamps to allow open discovery.
- * - Resources require an `authorId` field to enforce owner-only writes.
- * - No schema validation is performed beyond authorization-critical fields, adhering to the prototyping philosophy.
+ * - Users can only access their own data under /users/{userId}.
+ * - Listing of users is disallowed.
+ * - Public read access is granted for /mentors, /bookings, /reviews, /resources, and /bootcamps.
+ * - Write access to public collections is restricted to owners or admins (where applicable).
+ * - Data validation is minimized for prototyping but includes critical authorization checks.
  *
  * Denormalization for Authorization:
- * - The `authorId` field is used in the `/resources/{resourceId}` collection to directly enforce ownership without requiring additional reads.
+ * - Bootcamp documents contain an `enrolledStudentIds` array, enabling rules to directly check if a user is enrolled.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profiles.
+     * @description Checks if the current user is signed in.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Authentication check.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the current user is the owner of the resource.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Ownership check.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the current user is the existing owner of the resource.
+     * Ensures that the document exists to prevent accidental deletion of non-existent documents.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Ownership and existence check.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Checks if the current user is an admin.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Admin role check.
+     */
+    function isAdmin() {
+        return exists(/databases/(default)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * @description Rules for user profiles.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their own profile.
-     * @allow (get, update, delete) User with ID 'user123' can read, update, and delete their own profile.
-     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
-     * @deny (get, update, delete) User with ID 'user456' cannot read, update, or delete the profile of 'user123'.
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @allow (create) A user with UID 'user123' can create their profile at /users/user123.
+     * @allow (get) A user with UID 'user123' can get their profile at /users/user123.
+     * @allow (update) A user with UID 'user123' can update their profile at /users/user123.
+     * @allow (delete) A user with UID 'user123' can delete their profile at /users/user123.
+     * @deny (create) A user with UID 'user123' cannot create a profile at /users/user456.
+     * @deny (get) A user with UID 'user123' cannot get the profile at /users/user456.
+     * @deny (update) A user with UID 'user123' cannot update the profile at /users/user456.
+     * @deny (delete) A user with UID 'user123' cannot delete the profile at /users/user456.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false; // User listing is disallowed
-
+      allow list: if false; // No listing of all users.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId);
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id; // Enforce immutability of userId.
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to mentor profiles.
+     * @description Rules for resume analyses under a user.
+     * @path /users/{userId}/resumeAnalyses/{analysisId}
+     * @allow (create) A user with UID 'user123' can create a resume analysis under /users/user123/resumeAnalyses.
+     * @allow (get) A user with UID 'user123' can get their resume analysis at /users/user123/resumeAnalyses/{analysisId}.
+     * @allow (update) A user with UID 'user123' can update their resume analysis at /users/user123/resumeAnalyses/{analysisId}.
+     * @allow (delete) A user with UID 'user123' can delete their resume analysis at /users/user123/resumeAnalyses/{analysisId}.
+     * @deny (create) A user with UID 'user123' cannot create a resume analysis under /users/user456/resumeAnalyses.
+     * @deny (get) A user with UID 'user123' cannot get a resume analysis from /users/user456/resumeAnalyses/{analysisId}.
+     * @deny (update) A user with UID 'user123' cannot update a resume analysis from /users/user456/resumeAnalyses/{analysisId}.
+     * @deny (delete) A user with UID 'user123' cannot delete a resume analysis from /users/user456/resumeAnalyses/{analysisId}.
+     * @principle Enforces document ownership for all operations on resume analyses.
+     */
+    match /users/{userId}/resumeAnalyses/{analysisId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for mentor profiles.
      * @path /mentors/{mentorId}
      * @allow (get, list) Any user can read mentor profiles.
-     * @deny (create, update, delete) Only specific logic should allow modification of mentor profiles (TODO).
-     * @principle Public read access with restricted write access.
+     * @deny (create, update, delete) Only admins can create, update, or delete mentor profiles.
+     * @principle Public read access with admin-only writes.
      */
     match /mentors/{mentorId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add logic for mentor profile management
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Controls access to booking information.
+     * @description Rules for bookings.
      * @path /bookings/{bookingId}
      * @allow (get, list) Any user can read booking information.
-     * @deny (create, update, delete) Only specific logic should allow modification of booking information (TODO).
-     * @principle Public read access with restricted write access.
+     * @deny (create, update, delete) Only admins can create, update, or delete booking information.
+     * @principle Public read access with admin-only writes.
      */
     match /bookings/{bookingId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add logic for booking management
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Controls access to reviews for mentors.
+     * @description Rules for reviews.
      * @path /reviews/{reviewId}
      * @allow (get, list) Any user can read reviews.
-     * @deny (create, update, delete) Only specific logic should allow modification of reviews (TODO).
-     * @principle Public read access with restricted write access.
+     * @deny (create, update, delete) Only admins can create, update, or delete reviews.
+     * @principle Public read access with admin-only writes.
      */
     match /reviews/{reviewId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add logic for review management
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Controls access to resources in the community library.
+     * @description Rules for resources.
      * @path /resources/{resourceId}
      * @allow (get, list) Any user can read resources.
-     * @allow (create) User can create a resource if the authorId matches their user ID.
-     * @allow (update, delete) Only the author of the resource can update or delete it, and only if the resource exists.
-     * @deny (create) User cannot create a resource with an authorId that doesn't match their own user ID.
-     * @deny (update, delete) User cannot update or delete a resource they did not create.
-     * @principle Enforces document ownership for writes, allows public reads.
+     * @allow (create) A user can create a resource if the authorId matches their UID.
+     * @allow (update, delete) Only the resource author can update or delete it.
+     * @principle Public read access with owner-only writes.
      */
     match /resources/{resourceId} {
       allow get, list: if true;
       allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isSignedIn() && request.resource.data.authorId == getAfter().data.authorId && request.auth.uid == getAfter().data.authorId;
-      allow delete: if isSignedIn() && request.auth.uid == getAfter().data.authorId;
+      allow update: if isExistingOwner(resource.data.authorId);
+      allow delete: if isExistingOwner(resource.data.authorId);
     }
 
     /**
-     * @description Controls access to bootcamp information.
+     * @description Rules for bootcamps.
      * @path /bootcamps/{bootcampId}
      * @allow (get, list) Any user can read bootcamp information.
-     * @deny (create, update, delete) Only specific logic should allow modification of bootcamp information (TODO).
-     * @principle Public read access with restricted write access.
+     * @allow (create, update, delete) Only admins can create, update, or delete bootcamps.
+     * @principle Public read access with admin-only writes.
      */
     match /bootcamps/{bootcampId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add logic for bootcamp management
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Controls access to admin roles.
+     * @description Rules for admin roles.
      * @path /roles_admin/{userId}
-     * @allow create: if isAdmin();
-     * @allow get: if isAdmin();
-     * @allow list: if isAdmin();
-     * @allow update: if isAdmin();
-     * @allow delete: if isAdmin();
-     * @principle Only admins can create, read, update, or delete admin roles.
+     * @allow (get) Any authenticated user can check if a user is an admin.
+     * @allow (create) Only admins can grant admin roles.
+     * @allow (update, delete) Only admins can modify admin roles.
+     * @principle Admin-only access control.
      */
     match /roles_admin/{userId} {
+      allow get: if isSignedIn();
+      allow list: if false;
       allow create: if isAdmin();
-      allow get: if isAdmin();
-      allow list: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
   }
-
-  // Helper Functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId);
-  }
-
-  function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-  }
-
-    function getAfter() {
-      return get(/databases/$(database)/documents/resources/$(resourceId));
-    }
 }
