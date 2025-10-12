@@ -3,55 +3,55 @@
     {
       "id": "hero-image",
       "description": "Students collaborating over laptops.",
-      "imageUrl": "https://picsum.photos/seed/100/1200/800",
+      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&h=800&fit=crop",
       "imageHint": "students collaboration"
     },
     {
       "id": "feature-resume-review",
       "description": "A professional resume being reviewed.",
-      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=600&h=400&fit=crop",
       "imageHint": "resume review"
     },
     {
       "id": "feature-mentors",
       "description": "A mentor guiding a student.",
-      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=600&h=400&fit=crop",
       "imageHint": "mentor guidance"
     },
     {
       "id": "feature-resources",
       "description": "A digital library of resources.",
-      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1491841550275-5b462bf48545?q=80&w=600&h=400&fit=crop",
       "imageHint": "digital library"
     },
     {
       "id": "feature-bootcamps",
       "description": "A group of students in an online bootcamp.",
-      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1534665482403-a909d0d97c67?q=80&w=600&h=400&fit=crop",
       "imageHint": "online bootcamp"
     },
     {
       "id": "mentor-1",
       "description": "Profile picture of a mentor.",
-      "imageUrl": "https://picsum.photos/seed/105/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&h=200&fit=crop",
       "imageHint": "professional portrait"
     },
     {
       "id": "mentor-2",
       "description": "Profile picture of a mentor.",
-      "imageUrl": "https://picsum.photos/seed/106/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&h=200&fit=crop",
       "imageHint": "professional woman"
     },
     {
       "id": "mentor-3",
       "description": "Profile picture of a mentor.",
-      "imageUrl": "https://picsum.photos/seed/107/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&h=200&fit=crop",
       "imageHint": "software engineer"
     },
     {
       "id": "resume-analysis-hero",
       "description": "Abstract visualization of data analysis.",
-      "imageUrl": "https://picsum.photos/seed/108/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e28f81?q=80&w=600&h=400&fit=crop",
       "imageHint": "data analysis"
     }
   ]
