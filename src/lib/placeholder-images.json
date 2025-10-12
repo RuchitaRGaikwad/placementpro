@@ -56,9 +56,9 @@
     },
     {
       "id": "dsa-book-cover",
-      "description": "A classic reference book cover for Data Structures and Algorithms.",
-      "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&h=600&fit=crop",
-      "imageHint": "book cover"
+      "description": "An abstract visualization of data structures and algorithms, with code and graph-like structures.",
+      "imageUrl": "https://images.unsplash.com/photo-1550439062-609e1531270e?q=80&w=800&h=600&fit=crop",
+      "imageHint": "abstract code"
     },
     {
       "id": "pm-bootcamp",
