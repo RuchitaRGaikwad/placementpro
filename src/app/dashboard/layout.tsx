@@ -141,10 +141,12 @@ export default function DashboardLayout({
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <Button variant="outline" className="w-full justify-start gap-2 bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90">
-            <Settings />
-            <span>Settings</span>
-          </Button>
+          <Link href="/dashboard/settings" className='w-full'>
+            <Button variant="outline" className="w-full justify-start gap-2 bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90">
+                <Settings />
+                <span>Settings</span>
+            </Button>
+          </Link>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
@@ -166,13 +168,17 @@ export default function DashboardLayout({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                        <User className="mr-2" />
+                        <span>Profile</span>
+                    </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                        <Settings className="mr-2" />
+                        <span>Settings</span>
+                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
