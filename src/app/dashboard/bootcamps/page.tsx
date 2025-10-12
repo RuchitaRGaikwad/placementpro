@@ -1,3 +1,4 @@
+
 import { GraduationCap, Clock, BarChart, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -69,9 +70,9 @@ export default function BootcampsPage() {
           const image = getBootcampImage(bootcamp.imageUrlId);
           return (
             <Card key={bootcamp.id} className="flex flex-col group hover:border-primary transition-colors">
-              <Link href={`/dashboard/bootcamps/${bootcamp.id}`} className='flex flex-col flex-grow'>
+              <div className='flex flex-col flex-grow'>
                 {image && (
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                 <Link href={`/dashboard/bootcamps/${bootcamp.id}`} className='block relative h-48 w-full overflow-hidden rounded-t-lg'>
                     <Image
                       src={image.imageUrl}
                       alt={bootcamp.title}
@@ -80,10 +81,12 @@ export default function BootcampsPage() {
                       data-ai-hint={image.imageHint}
                     />
                      <Badge variant="default" className="absolute top-2 right-2 bg-accent text-accent-foreground">Premium</Badge>
-                  </div>
+                  </Link>
                 )}
-                <CardHeader>
-                  <CardTitle>{bootcamp.title}</CardTitle>
+                 <CardHeader>
+                   <Link href={`/dashboard/bootcamps/${bootcamp.id}`}>
+                    <CardTitle>{bootcamp.title}</CardTitle>
+                   </Link>
                   <CardDescription>
                     <Badge variant="secondary">{bootcamp.category}</Badge>
                   </CardDescription>
@@ -101,7 +104,7 @@ export default function BootcampsPage() {
                     <span>{bootcamp.schedule}</span>
                   </div>
                 </CardContent>
-              </Link>
+              </div>
               <CardFooter className="flex items-center justify-between">
                 <p className="text-xl font-bold font-headline">
                   ₹{bootcamp.price}

@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,29 +20,74 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 // Mock data
-const bootcamp = {
-  id: 1,
-  title: 'Advanced System Design',
-  instructor: 'Priya Singh',
-  description:
-    'This bootcamp offers a comprehensive exploration of system design principles essential for developing large-scale, resilient applications. Participants will delve into topics such as scalability, microservices architecture, distributed systems, caching strategies, and database design. The course includes hands-on sessions where you will design real-world systems like a social media feed, a ride-sharing service, and a distributed message queue. By the end of this bootcamp, you will have the confidence to tackle complex system design interview questions and architect robust solutions in your professional projects.',
-  schedule: 'Mon, Wed, Fri @ 7 PM IST',
-  price: 4999,
-  category: 'System Design',
-  imageUrlId: 'feature-bootcamps',
-  curriculum: [
-    'Introduction to System Design',
-    'Scalability & Performance',
-    'Microservices vs. Monoliths',
-    'Caching Techniques',
-    'Database Design (SQL vs NoSQL)',
-    'Designing a URL Shortener',
-    'Designing a Social Media Feed',
-    'Q&A with Industry Experts',
-  ],
-};
+const bootcamps = [
+  {
+    id: 1,
+    title: 'Advanced System Design',
+    instructor: 'Priya Singh',
+    description:
+      'This bootcamp offers a comprehensive exploration of system design principles essential for developing large-scale, resilient applications. Participants will delve into topics such as scalability, microservices architecture, distributed systems, caching strategies, and database design. The course includes hands-on sessions where you will design real-world systems like a social media feed, a ride-sharing service, and a distributed message queue. By the end of this bootcamp, you will have the confidence to tackle complex system design interview questions and architect robust solutions in your professional projects.',
+    schedule: 'Mon, Wed, Fri @ 7 PM IST',
+    price: 4999,
+    category: 'System Design',
+    imageUrlId: 'feature-bootcamps',
+    curriculum: [
+      'Introduction to System Design',
+      'Scalability & Performance',
+      'Microservices vs. Monoliths',
+      'Caching Techniques',
+      'Database Design (SQL vs NoSQL)',
+      'Designing a URL Shortener',
+      'Designing a Social Media Feed',
+      'Q&A with Industry Experts',
+    ],
+  },
+  {
+    id: 2,
+    title: 'Data Structures & Algorithms',
+    instructor: 'Rohan Verma',
+    description:
+      'A deep dive into essential DSA for top-tier company interviews. Includes hands-on coding sessions and practice problems from FAANG companies.',
+    schedule: 'Tue, Thu, Sat @ 8 PM IST',
+    price: 3999,
+    category: 'DSA',
+    imageUrlId: 'dsa-bootcamp',
+    curriculum: [
+      'Arrays & Strings',
+      'Linked Lists, Stacks & Queues',
+      'Trees & Graphs',
+      'Heaps & Hashing',
+      'Dynamic Programming',
+      'Greedy Algorithms',
+      'Backtracking & Recursion',
+      'Mock Coding Interviews',
+    ],
+  },
+  {
+    id: 3,
+    title: 'Product Management Fundamentals',
+    instructor: 'Aditya Sharma',
+    description:
+      'Learn the A-Z of product management, from ideation to launch. Taught by a seasoned PM from Google.',
+    schedule: 'Weekends @ 11 AM IST',
+    price: 5999,
+    category: 'Product Management',
+    imageUrlId: 'pm-bootcamp',
+    curriculum: [
+      'The Role of a PM',
+      'Product Strategy & Vision',
+      'User Research & Personas',
+      'PRDs & Roadmapping',
+      'Agile & Scrum Methodologies',
+      'Product Launch & Go-to-Market',
+      'Metrics & A/B Testing',
+      'Crafting Your PM Resume',
+    ],
+  },
+];
 
 const getBootcampImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id);
@@ -51,6 +97,12 @@ export default function BootcampDetailPage({
 }: {
   params: { bootcampId: string };
 }) {
+  const bootcamp = bootcamps.find(b => b.id.toString() === params.bootcampId);
+
+  if (!bootcamp) {
+    notFound();
+  }
+
   const image = getBootcampImage(bootcamp.imageUrlId);
 
   return (
