@@ -68,36 +68,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  // Effect to subscribe to Firebase auth state changes and manage session cookie
+  // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
     if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
     
-    let lastToken: string | null = null;
-    
     const unsubscribe = onIdTokenChanged(
       auth,
-      async (firebaseUser) => {
+      (firebaseUser) => {
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-
-        if (firebaseUser) {
-          const currentToken = await firebaseUser.getIdToken();
-          // If token is new, update server session
-          if (currentToken !== lastToken) {
-            lastToken = currentToken;
-            await fetch('/api/auth/session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain' },
-              body: currentToken,
-            });
-          }
-        } else {
-          // User signed out, clear server session
-          lastToken = null;
-          await fetch('/api/auth/session', { method: 'DELETE' });
-        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onIdTokenChanged error:", error);

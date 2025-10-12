@@ -64,24 +64,39 @@ export default function LoginPage() {
         defaultValues: { email: '', password: '', confirmPassword: '' },
     });
     
+    // Redirect if user is already logged in
     useEffect(() => {
-        // When the user object becomes available and we were in a submitting state, redirect.
-        if (!isUserLoading && user && isSubmitting) {
+        if (!isUserLoading && user) {
             router.push('/dashboard');
         }
-    }, [user, isUserLoading, router, isSubmitting]);
+    }, [isUserLoading, user, router]);
     
     async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
         setAuthError(null);
         setIsSubmitting(true);
         try {
-            await signInWithEmailAndPassword(auth, values.email, values.password);
-            // The useEffect will handle redirection once the user state is updated by the provider.
+            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken();
+
+            // Create server session
+            const response = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+
+            if (response.ok) {
+                // Redirect on successful session creation
+                router.push('/dashboard');
+            } else {
+                throw new Error('Failed to create session.');
+            }
+
         } catch (error: any) {
              if (error.code === 'auth/invalid-credential') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
-                setAuthError('An unexpected error occurred. Please try again.');
+                setAuthError(error.message || 'An unexpected error occurred. Please try again.');
             }
             setIsSubmitting(false);
         }
@@ -91,13 +106,28 @@ export default function LoginPage() {
         setAuthError(null);
         setIsSubmitting(true);
        try {
-            await createUserWithEmailAndPassword(auth, values.email, values.password);
-             // The useEffect will handle redirection once the user state is updated by the provider.
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const idToken = await userCredential.user.getIdToken();
+
+             // Create server session
+            const response = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: idToken,
+            });
+
+            if (response.ok) {
+                // Redirect on successful session creation
+                router.push('/dashboard');
+            } else {
+                throw new Error('Failed to create session.');
+            }
+
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
-                setAuthError('An unexpected error occurred during registration.');
+                setAuthError(error.message || 'An unexpected error occurred during registration.');
             }
             setIsSubmitting(false);
         }
@@ -110,12 +140,14 @@ export default function LoginPage() {
         registerForm.reset();
     }
 
-    // If user is already logged in (and not loading), redirect immediately
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            router.push('/dashboard');
-        }
-    }, [isUserLoading, user, router]);
+    // A simple loading state while we check for an existing user
+    if (isUserLoading || user) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
 
 
   return (

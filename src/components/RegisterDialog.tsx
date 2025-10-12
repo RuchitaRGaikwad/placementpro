@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
@@ -45,7 +45,6 @@ type RegisterDialogProps = {
 export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
   const auth = useAuth();
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,29 +53,32 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     defaultValues: { email: '', password: '', confirmPassword: '' },
   });
 
-  useEffect(() => {
-    // When registration is successful (user object populated) and we were submitting,
-    // close the dialog and redirect.
-    if (!isUserLoading && user && isSubmitting) {
-      onOpenChange(false);
-      router.push('/dashboard');
-    }
-  }, [user, isUserLoading, router, isSubmitting, onOpenChange]);
-
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
     setAuthError(null);
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // The `useEffect` hook above will handle closing the dialog and redirecting
-      // once the `useUser` hook provides the new user object.
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const idToken = await userCredential.user.getIdToken();
+      
+      const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: idToken,
+      });
+
+      if (response.ok) {
+        onOpenChange(false);
+        router.push('/dashboard');
+      } else {
+        throw new Error('Failed to create session.');
+      }
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         setAuthError('This email is already registered. Please log in.');
       } else {
-        setAuthError('An unexpected error occurred during registration.');
+        setAuthError(error.message || 'An unexpected error occurred during registration.');
       }
-      setIsSubmitting(false); // Only set to false on error to allow re-submission
+      setIsSubmitting(false);
     }
   }
 
