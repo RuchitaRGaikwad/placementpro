@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,7 +45,7 @@ const ResourceIcon = ({ type }: { type: string }) => {
 };
 
 export default function ResourceDetailPage({
-  params,
+  params: { resourceId },
 }: {
   params: { resourceId: string };
 }) {

@@ -93,11 +93,11 @@ const getBootcampImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id);
 
 export default function BootcampDetailPage({
-  params,
+  params: { bootcampId },
 }: {
   params: { bootcampId: string };
 }) {
-  const bootcamp = bootcamps.find(b => b.id.toString() === params.bootcampId);
+  const bootcamp = bootcamps.find(b => b.id.toString() === bootcampId);
 
   if (!bootcamp) {
     notFound();

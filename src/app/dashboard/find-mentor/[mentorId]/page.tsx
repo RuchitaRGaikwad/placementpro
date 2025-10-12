@@ -1,3 +1,4 @@
+
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ const getMentorImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id);
 
 export default function MentorDetailPage({
-  params,
+  params: { mentorId },
 }: {
   params: { mentorId: string };
 }) {
