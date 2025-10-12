@@ -36,7 +36,7 @@ const featureMentors = PlaceHolderImages.find(
   (img) => img.id === 'feature-mentors'
 );
 const featureResources = PlaceHolderImages.find(
-  (img) => img.id === 'team-collaboration'
+  (img) => img.id === 'feature-resources'
 );
 const featureBootcamps = PlaceHolderImages.find(
   (img) => img.id === 'feature-bootcamps'
@@ -327,5 +327,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
