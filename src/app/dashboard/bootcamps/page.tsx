@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Link from 'next/link';
 
 const bootcamps = [
   {
@@ -67,14 +68,15 @@ export default function BootcampsPage() {
         {bootcamps.map((bootcamp) => {
           const image = getBootcampImage(bootcamp.imageUrlId);
           return (
-            <Card key={bootcamp.id} className="flex flex-col">
+            <Card key={bootcamp.id} className="flex flex-col group">
+                 <Link href={`/dashboard/bootcamps/${bootcamp.id}`} className='flex flex-col flex-grow'>
               {image && (
-                <div className="relative h-48 w-full">
+                <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                   <Image
                     src={image.imageUrl}
                     alt={bootcamp.title}
                     fill
-                    className="object-cover rounded-t-lg"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                     data-ai-hint={image.imageHint}
                   />
                 </div>
@@ -98,6 +100,7 @@ export default function BootcampsPage() {
                   <span>{bootcamp.schedule}</span>
                 </div>
               </CardContent>
+              </Link>
               <CardFooter className="flex items-center justify-between">
                 <p className="text-xl font-bold font-headline">
                   ₹{bootcamp.price}

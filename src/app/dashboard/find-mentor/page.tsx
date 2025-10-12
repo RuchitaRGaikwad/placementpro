@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Link from 'next/link';
 
 const mentors = [
   {
@@ -65,6 +66,7 @@ export default function FindMentorPage() {
           const mentorImage = getMentorImage(mentor.imageId);
           return (
             <Card key={mentor.id} className="flex flex-col">
+                <Link href={`/dashboard/find-mentor/${mentor.id}`} className='flex flex-col flex-grow'>
               <CardHeader className="flex-row items-start gap-4">
                 {mentorImage && (
                   <Image
@@ -96,6 +98,7 @@ export default function FindMentorPage() {
                   ))}
                 </div>
               </CardContent>
+              </Link>
               <CardFooter className="flex items-center justify-between">
                 <div className="font-bold flex items-center">
                     <IndianRupee className='h-5 w-5' />
