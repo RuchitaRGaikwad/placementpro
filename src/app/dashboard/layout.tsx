@@ -38,6 +38,7 @@ import {
   Settings,
   User,
   Users,
+  History
 } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -52,6 +53,11 @@ const navItems = [
     href: '/dashboard/resume-review',
     label: 'AI Resume Review',
     icon: FileText,
+  },
+   {
+    href: '/dashboard/resume-review/history',
+    label: 'Review History',
+    icon: History,
   },
   {
     href: '/dashboard/find-mentor',
@@ -99,7 +105,7 @@ export default function DashboardLayout({
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.label}>
-                <Link href={item.href} passHref>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     as="a"
                     isActive={pathname === item.href}

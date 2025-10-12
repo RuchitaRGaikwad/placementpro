@@ -2,6 +2,10 @@
 
 import { z } from 'zod';
 import { analyzeResume } from '@/ai/flows/ai-resume-review';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { initializeFirebase } from '@/firebase';
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, { message: 'Job description must be at least 50 characters long.' }),
@@ -21,6 +25,13 @@ export async function reviewResumeAction(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  const { auth, firestore } = initializeFirebase();
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    return { success: false, message: 'You must be logged in to review a resume.' };
+  }
+
   const validatedFields = resumeSchema.safeParse({
     jobDescription: formData.get('jobDescription'),
     resume: formData.get('resume'),
@@ -52,6 +63,20 @@ export async function reviewResumeAction(
       resumeDataUri,
       jobDescription,
     });
+    
+    // Save analysis to Firestore
+    const analysisId = doc(firestore, 'users', currentUser.uid, 'resumeAnalyses', 'temp-id').id;
+    const analysisRef = doc(firestore, 'users', currentUser.uid, 'resumeAnalyses', analysisId);
+    
+    await setDoc(analysisRef, {
+      id: analysisId,
+      userId: currentUser.uid,
+      jobDescription,
+      matchScore: analysis.matchScore,
+      improvements: analysis.improvements,
+      analyzedAt: new Date().toISOString(),
+    });
+
 
     return {
       success: true,

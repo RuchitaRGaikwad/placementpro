@@ -282,6 +282,47 @@
         "schedule",
         "price"
       ]
+    },
+    "ResumeAnalysis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ResumeAnalysis",
+      "type": "object",
+      "description": "Represents the result of an AI resume analysis.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the analysis."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns this analysis."
+        },
+        "jobDescription": {
+          "type": "string",
+          "description": "The job description used for the analysis."
+        },
+        "matchScore": {
+          "type": "number",
+          "description": "The percentage match score (0-100)."
+        },
+        "improvements": {
+          "type": "string",
+          "description": "AI-generated suggestions for improvement."
+        },
+        "analyzedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the analysis was performed."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "jobDescription",
+        "matchScore",
+        "improvements",
+        "analyzedAt"
+      ]
     }
   },
   "auth": {
@@ -304,6 +345,26 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/users/{userId}/resumeAnalyses/{analysisId}",
+        "definition": {
+          "entityName": "ResumeAnalysis",
+          "schema": {
+            "$ref": "#/backend/entities/ResumeAnalysis"
+          },
+          "description": "Stores the history of AI resume analyses for a specific user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "analysisId",
+              "description": "The unique identifier of the resume analysis."
             }
           ]
         }
@@ -405,6 +466,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily manageable data architecture for the PlacementPro application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). The structure ensures that security rules are straightforward, robust, and easily debuggable.\n\n**Authorization Independence:** Denormalization is extensively used to avoid hierarchical authorization dependencies, which can complicate security rules and hinder atomic operations (transactions/batches). For instance, access control data (e.g., enrolled student IDs for bootcamps) are embedded directly within the relevant documents, eliminating the need for complex `get()` calls in security rules.\n\n**Structural Segregation:** The design segregates data based on access needs. User-owned data is stored under `/users/{userId}`, resources requiring moderation are kept separate, and global roles are managed via dedicated collections.\n\n**Access Modeling:** User data is primarily path-based (`/users/{userId}`). Collaborative data, like bootcamps with enrolled students, uses arrays of IDs directly within the document. Global roles are managed using the existence of documents in dedicated collections (e.g., `/roles_admin/{uid}`).\n\n**QAPs (Rules are not Filters):** The structure enables secure `list` operations by ensuring that collections contain documents with homogeneous security requirements. For example, listing mentors is safe because all documents in the `/mentors/{mentorId}` collection have the same read access permissions.\n\n**Invariants:** The structure supports invariants such as ownership and data integrity. For example, the `authorId` field in the `/resources/{resourceId}` collection ensures that the creator of a resource is always explicitly known.\n\n**Data Clarity and Predictability:** The structure enforces explicit state modeling (e.g., `status` field for resources) and avoids dynamic keys. Consistent naming conventions are followed across all paths and fields."
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily manageable data architecture for the PlacementPro application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). The structure ensures that security rules are straightforward, robust, and easily debuggable.\n\n**Authorization Independence:** Denormalization is extensively used to avoid hierarchical authorization dependencies, which can complicate security rules and hinder atomic operations (transactions/batches). For instance, access control data (e.g., enrolled student IDs for bootcamps) are embedded directly within the relevant documents, eliminating the need for complex `get()` calls in security rules. The `resumeAnalyses` are stored in a subcollection under the `user` to ensure data is owned by and easily queried for a specific user.\n\n**Structural Segregation:** The design segregates data based on access needs. User-owned data is stored under `/users/{userId}`, resources requiring moderation are kept separate, and global roles are managed via dedicated collections.\n\n**Access Modeling:** User data is primarily path-based (`/users/{userId}`). Collaborative data, like bootcamps with enrolled students, uses arrays of IDs directly within the document. Global roles are managed using the existence of documents in dedicated collections (e.g., `/roles_admin/{uid}`).\n\n**QAPs (Rules are not Filters):** The structure enables secure `list` operations by ensuring that collections contain documents with homogeneous security requirements. For example, listing mentors is safe because all documents in the `/mentors/{mentorId}` collection have the same read access permissions.\n\n**Invariants:** The structure supports invariants such as ownership and data integrity. For example, the `authorId` field in the `/resources/{resourceId}` collection ensures that the creator of a resource is always explicitly known.\n\n**Data Clarity and Predictability:** The structure enforces explicit state modeling (e.g., `status` field for resources) and avoids dynamic keys. Consistent naming conventions are followed across all paths and fields."
   }
 }
