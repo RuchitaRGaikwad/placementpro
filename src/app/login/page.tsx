@@ -52,6 +52,7 @@ export default function LoginPage() {
     const { user, isUserLoading } = useUser();
     const [authError, setAuthError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState('login');
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -62,29 +63,27 @@ export default function LoginPage() {
         resolver: zodResolver(registerSchema),
         defaultValues: { email: '', password: '', confirmPassword: '' },
     });
-
+    
     useEffect(() => {
-        // When the user object becomes available, redirect to dashboard.
-        // The useUser hook now handles session creation, so we just wait for the user.
-        if (!isUserLoading && user) {
+        // When the user object becomes available and we were in a submitting state, redirect.
+        if (!isUserLoading && user && isSubmitting) {
             router.push('/dashboard');
         }
-    }, [user, isUserLoading, router]);
+    }, [user, isUserLoading, router, isSubmitting]);
     
     async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
         setAuthError(null);
         setIsSubmitting(true);
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
-            // No need to manually create session or redirect here.
-            // The useEffect hook will handle the redirect when `user` state updates.
+            // The useEffect will handle redirection once the user state is updated by the provider.
         } catch (error: any) {
              if (error.code === 'auth/invalid-credential') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
                 setAuthError('An unexpected error occurred. Please try again.');
             }
-            setIsSubmitting(false); // Only set to false on error.
+            setIsSubmitting(false);
         }
     }
 
@@ -93,17 +92,31 @@ export default function LoginPage() {
         setIsSubmitting(true);
        try {
             await createUserWithEmailAndPassword(auth, values.email, values.password);
-             // No need to manually create session or redirect here.
-            // The useEffect hook will handle the redirect when `user` state updates.
+             // The useEffect will handle redirection once the user state is updated by the provider.
         } catch (error: any) {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
                 setAuthError('An unexpected error occurred during registration.');
             }
-            setIsSubmitting(false); // Only set to false on error.
+            setIsSubmitting(false);
         }
     }
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        setAuthError(null);
+        loginForm.reset();
+        registerForm.reset();
+    }
+
+    // If user is already logged in (and not loading), redirect immediately
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            router.push('/dashboard');
+        }
+    }, [isUserLoading, user, router]);
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50">
@@ -122,7 +135,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login">
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
@@ -157,7 +170,7 @@ export default function LoginPage() {
                         )}
                         />
                         <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Login'}
+                            {isSubmitting && activeTab === 'login' ? <Loader2 className="animate-spin" /> : 'Login'}
                         </Button>
                     </form>
                 </Form>
@@ -205,7 +218,7 @@ export default function LoginPage() {
                         )}
                         />
                         <Button type="submit" className="w-full" disabled={isSubmitting}>
-                           {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                           {isSubmitting && activeTab === 'register' ? <Loader2 className="animate-spin" /> : 'Create Account'}
                         </Button>
                     </form>
                 </Form>

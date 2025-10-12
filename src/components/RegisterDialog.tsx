@@ -55,11 +55,11 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
   });
 
   useEffect(() => {
-    // When registration is successful, the user object will be populated.
-    // The useUser hook handles session creation, so we just wait for the user object.
+    // When registration is successful (user object populated) and we were submitting,
+    // close the dialog and redirect.
     if (!isUserLoading && user && isSubmitting) {
-      onOpenChange(false); // Close the dialog
-      router.push('/dashboard'); // Redirect to dashboard
+      onOpenChange(false);
+      router.push('/dashboard');
     }
   }, [user, isUserLoading, router, isSubmitting, onOpenChange]);
 
@@ -68,18 +68,26 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     setIsSubmitting(true);
     try {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // After this, the onIdTokenChanged listener in FirebaseProvider will trigger,
-      // which updates the `user` object from the `useUser` hook.
-      // The useEffect above will then handle the redirection.
+      // The `useEffect` hook above will handle closing the dialog and redirecting
+      // once the `useUser` hook provides the new user object.
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         setAuthError('This email is already registered. Please log in.');
       } else {
         setAuthError('An unexpected error occurred during registration.');
       }
-      setIsSubmitting(false); // Only set to false on error.
+      setIsSubmitting(false); // Only set to false on error to allow re-submission
     }
   }
+
+  // Reset form when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      registerForm.reset();
+      setAuthError(null);
+      setIsSubmitting(false);
+    }
+  }, [open, registerForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
