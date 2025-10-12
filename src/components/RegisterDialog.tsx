@@ -57,9 +57,21 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     setAuthError(null);
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      onOpenChange(false);
-      router.push('/dashboard');
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const idToken = await userCredential.user.getIdToken();
+
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: idToken,
+      });
+
+      if (res.ok) {
+        onOpenChange(false);
+        router.push('/dashboard');
+      } else {
+        setAuthError('Failed to create session. Please try again.');
+      }
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         setAuthError('This email is already registered. Please log in.');
