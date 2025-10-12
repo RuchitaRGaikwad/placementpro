@@ -17,7 +17,7 @@ export default function ResumeReviewPage() {
           </p>
         </div>
         {heroImage && (
-            <div className="hidden md:block">
+            <div>
                 <Image
                     src={heroImage.imageUrl}
                     alt={heroImage.description}
