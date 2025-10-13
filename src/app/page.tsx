@@ -50,6 +50,7 @@ function LoginForm() {
     });
 
     async function onSubmit(values: z.infer<typeof loginSchema>) {
+        if (!auth) return;
         setAuthError(null);
         setIsSubmitting(true);
         try {
@@ -59,7 +60,7 @@ function LoginForm() {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 setAuthError('Invalid email or password. Please try again.');
             } else {
-                setAuthError(error.message || 'An unexpected error occurred. Please try again.');
+                setAuthError('An unexpected error occurred. Please try again.');
             }
         } finally {
             setIsSubmitting(false); 
@@ -115,6 +116,7 @@ function RegisterForm() {
     });
     
     async function onSubmit(values: z.infer<typeof registerSchema>) {
+        if (!auth) return;
         setAuthError(null);
         setIsSubmitting(true);
         try {
@@ -124,7 +126,7 @@ function RegisterForm() {
             if (error.code === 'auth/email-already-in-use') {
                 setAuthError('This email is already registered. Please log in.');
             } else {
-                setAuthError(error.message || 'An unexpected error occurred during registration.');
+                setAuthError('An unexpected error occurred during registration.');
             }
         } finally {
             setIsSubmitting(false);
@@ -152,11 +154,11 @@ function RegisterForm() {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                        </FormControl>
+                        <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -182,23 +184,16 @@ function RegisterForm() {
     );
 }
 
-// Define props for the page component to avoid direct searchParams access issues.
-interface LoginPageProps {
-    searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default function LoginPage({ searchParams }: LoginPageProps) {
+export default function LoginPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-        // If the user is loaded and exists, redirect to the dashboard.
         if (!isUserLoading && user) {
             router.push('/dashboard');
         }
     }, [isUserLoading, user, router]);
 
-    // Show a loading spinner while checking for user or if user exists (during redirect).
     if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
@@ -207,7 +202,6 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         );
     }
 
-  // If user is not loading and does not exist, show the login UI.
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <div className="w-full max-w-md space-y-4 px-4">

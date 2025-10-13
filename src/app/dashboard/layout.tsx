@@ -42,8 +42,7 @@ import {
   History
 } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
-import { useUser } from '@/firebase/provider';
-import { getAuth } from 'firebase/auth';
+import { useUser, useAuth } from '@/firebase/provider';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -94,6 +93,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const auth = useAuth();
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -102,7 +102,7 @@ export default function DashboardLayout({
   }, [isUserLoading, user, router]);
 
   const handleLogout = async () => {
-    const auth = getAuth();
+    if (!auth) return;
     await auth.signOut();
     await fetch('/api/auth/session', { method: 'DELETE' });
     router.push('/');

@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
  
@@ -7,16 +8,9 @@ export function middleware(request: NextRequest) {
 
   const isAuthPage = pathname === '/';
 
-  if (sessionCookie) {
-    if (isAuthPage) {
-      // If user is logged in and tries to access login page, redirect to dashboard
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-  } else {
-    if (!isAuthPage && pathname.startsWith('/dashboard')) {
-        // If user is not logged in and tries to access a protected dashboard page, redirect to login
-        return NextResponse.redirect(new URL('/', request.url));
-    }
+  if (sessionCookie && isAuthPage) {
+    // If user has a session and is on the login page, redirect to dashboard
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
  
   return NextResponse.next()
