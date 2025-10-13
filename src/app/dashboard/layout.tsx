@@ -120,7 +120,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="p-4">
-          <Link href="/" className="flex items-center gap-2 group/logo">
+          <Link href="/dashboard" className="flex items-center gap-2 group/logo">
             <Logo className="h-8 w-8 text-sidebar-primary" data-sidebar="sidebar" />
             <span className="font-bold text-xl font-headline text-sidebar-foreground">
               PlacementPro
