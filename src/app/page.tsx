@@ -1,239 +1,146 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Logo } from '@/components/icons/logo';
+  ArrowRight,
+  Bot,
+  GraduationCap,
+  Users,
+} from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useUser, useAuth } from '@/firebase/provider';
+import { Logo } from '@/components/icons/logo';
+import { useUser } from '@/firebase/provider';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useEffect } from 'react';
 
+const features = [
+  {
+    icon: <Bot className="h-10 w-10 text-primary" />,
+    title: 'AI-Powered Resume Review',
+    description:
+      'Get instant, detailed feedback on your resume against any job description. Our AI highlights keywords, suggests improvements, and gives you a match score to optimize your applications.',
+    imageId: 'feature-resume-review',
+    imageHint: 'resume review',
+  },
+  {
+    icon: <Users className="h-10 w-10 text-primary" />,
+    title: '1-on-1 Mentorship',
+    description:
+      'Connect with industry experts from top-tier companies. Book mock interviews, get career advice, and build your network with personalized guidance from seasoned professionals.',
+    imageId: 'feature-mentors',
+    imageHint: 'mentor guidance',
+  },
+  {
+    icon: <GraduationCap className="h-10 w-10 text-primary" />,
+    title: 'Exclusive Bootcamps',
+    description:
+      'Enroll in live, cohort-based bootcamps on in-demand skills like System Design, DSA, and Product Management. Learn from the best and accelerate your career growth.',
+    imageId: 'feature-bootcamps',
+    imageHint: 'online bootcamp',
+  },
+];
 
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-});
+const getFeatureImage = (id: string) =>
+  PlaceHolderImages.find((img) => img.id === id);
 
-const registerSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 
+export default function HomePage() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
-function LoginForm() {
-    const auth = useAuth();
-    const [authError, setAuthError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const form = useForm<z.infer<typeof loginSchema>>({
-        resolver: zodResolver(loginSchema),
-        defaultValues: { email: '', password: '' },
-    });
-
-    async function onSubmit(values: z.infer<typeof loginSchema>) {
-        if (!auth) return;
-        setAuthError(null);
-        setIsSubmitting(true);
-        try {
-            await signInWithEmailAndPassword(auth, values.email, values.password);
-            // The onIdTokenChanged listener in FirebaseProvider will handle session creation and redirection.
-        } catch (error: any) {
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                setAuthError('Invalid email or password. Please try again.');
-            } else {
-                setAuthError('An unexpected error occurred. Please try again.');
-            }
-        } finally {
-            setIsSubmitting(false); 
-        }
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/dashboard');
     }
-
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : 'Login'}
-                </Button>
-            </form>
-        </Form>
-    );
-}
-
-function RegisterForm() {
-    const auth = useAuth();
-    const [authError, setAuthError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const form = useForm<z.infer<typeof registerSchema>>({
-        resolver: zodResolver(registerSchema),
-        defaultValues: { email: '', password: '', confirmPassword: '' },
-    });
-    
-    async function onSubmit(values: z.infer<typeof registerSchema>) {
-        if (!auth) return;
-        setAuthError(null);
-        setIsSubmitting(true);
-        try {
-            await createUserWithEmailAndPassword(auth, values.email, values.password);
-            // The onIdTokenChanged listener in FirebaseProvider will handle session creation and redirection.
-        } catch (error: any) {
-            if (error.code === 'auth/email-already-in-use') {
-                setAuthError('This email is already registered. Please log in.');
-            } else {
-                setAuthError('An unexpected error occurred during registration.');
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
-    }
-
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="you@example.com" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 {authError && <p className="text-center text-sm text-red-500">{authError}</p>}
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                   {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
-                </Button>
-            </form>
-        </Form>
-    );
-}
-
-export default function LoginPage() {
-    const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            router.push('/dashboard');
-        }
-    }, [isUserLoading, user, router]);
-
-    if (isUserLoading || user) {
-        return (
-            <div className="flex h-screen w-screen items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            </div>
-        );
-    }
+  }, [user, isUserLoading, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50">
-      <div className="w-full max-w-md space-y-4 px-4">
-        <div className="flex justify-center">
-            <Link href="/" className="flex items-center gap-2">
-                <Logo className="h-8 w-8" />
-                <span className="font-bold font-headline text-xl">PlacementPro</span>
-            </Link>
+    <div className="flex min-h-dvh flex-col bg-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="h-8 w-8" />
+            <span className="font-bold font-headline text-xl">
+              PlacementPro
+            </span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" asChild>
+                <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/login">Get Started</Link>
+            </Button>
+          </div>
         </div>
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Welcome</CardTitle>
-            <CardDescription>
-              Sign in or create an account to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
-              <TabsContent value="login" className="pt-6">
-                <LoginForm />
-              </TabsContent>
-              <TabsContent value="register" className="pt-6">
-                 <RegisterForm />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+      </header>
+
+      <main className="flex-1">
+        <section className="py-16 md:py-24 lg:py-32">
+          <div className="container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter">
+                Your All-In-One Placement Preparation Platform
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                PlacementPro combines AI-powered tools, expert mentorship, and
+                community resources to help you land your dream job in tech.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" asChild>
+                  <Link href="/login">
+                    Start Your Journey <ArrowRight className="ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            {heroImage && (
+              <div className="relative h-80 lg:h-[400px] w-full rounded-xl shadow-lg overflow-hidden">
+                <Image
+                  src={heroImage.imageUrl}
+                  alt={heroImage.description}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={heroImage.imageHint}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section id="features" className="py-16 md:py-24 bg-muted">
+            <div className='container'>
+                 <div className="text-center space-y-4 mb-16">
+                    <h2 className="text-3xl md:text-4xl font-bold font-headline">Features Built for Your Success</h2>
+                    <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                        From AI analysis to human expertise, we've got you covered at every step of your interview preparation.
+                    </p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8">
+                {features.map((feature, index) => {
+                    const featureImage = getFeatureImage(feature.imageId);
+                    return (
+                        <div key={index} className="flex flex-col items-center text-center p-6 bg-card rounded-lg shadow-md">
+                            {feature.icon}
+                            <h3 className="text-xl font-bold font-headline mt-4 mb-2">{feature.title}</h3>
+                            <p className="text-muted-foreground">{feature.description}</p>
+                        </div>
+                    );
+                })}
+                </div>
+            </div>
+        </section>
+
+      </main>
+      <footer className="py-8 border-t">
+        <div className="container text-center text-muted-foreground text-sm">
+            © {new Date().getFullYear()} PlacementPro. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }

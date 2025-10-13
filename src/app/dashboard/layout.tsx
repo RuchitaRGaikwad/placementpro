@@ -97,7 +97,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/');
+      router.push('/login');
     }
   }, [isUserLoading, user, router]);
 
@@ -105,7 +105,7 @@ export default function DashboardLayout({
     if (!auth) return;
     await auth.signOut();
     await fetch('/api/auth/session', { method: 'DELETE' });
-    router.push('/');
+    router.push('/login');
   };
 
   if (isUserLoading || !user) {

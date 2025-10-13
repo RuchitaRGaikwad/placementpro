@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('__session');
 
-  const isAuthPage = pathname === '/';
+  const isAuthPage = pathname === '/login';
 
   if (sessionCookie && isAuthPage) {
     // If user has a session and is on the login page, redirect to dashboard
