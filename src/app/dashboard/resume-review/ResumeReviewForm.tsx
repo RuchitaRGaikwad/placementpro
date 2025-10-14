@@ -21,6 +21,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import { Pie, PieChart, Cell } from "recharts"
+
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
@@ -49,6 +56,46 @@ function SubmitButton() {
       )}
     </Button>
   );
+}
+
+const ScoreChart = ({ score }: { score: number }) => {
+    const chartData = [{ name: 'score', value: score }, { name: 'empty', value: 100 - score }];
+    const chartConfig = {
+      score: {
+        label: "Score",
+        color: "hsl(var(--primary))",
+      },
+       empty: {
+        label: "Empty",
+        color: "hsl(var(--muted))",
+      },
+    }
+
+    return (
+       <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square h-full"
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={60}
+              strokeWidth={5}
+              startAngle={90}
+              endAngle={450}
+            >
+                <Cell key="cell-score" fill="var(--color-score)" />
+                <Cell key="cell-empty" fill="var(--color-empty)" />
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+    )
 }
 
 export function ResumeReviewForm() {
@@ -149,15 +196,20 @@ export function ResumeReviewForm() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
-                <p className="text-sm font-medium text-muted-foreground">Match Score</p>
-                <p className="text-6xl font-bold font-headline text-primary">{analysisResult.matchScore}<span className='text-3xl'>%</span></p>
+              <div className="relative flex flex-col items-center justify-center p-6 bg-muted rounded-lg h-64">
+                <p className="text-sm font-medium text-muted-foreground absolute top-4">Match Score</p>
+                <div className='relative h-40 w-40'>
+                    <ScoreChart score={analysisResult.matchScore} />
+                    <div className='absolute inset-0 flex items-center justify-center'>
+                         <p className="text-4xl font-bold font-headline text-primary">{analysisResult.matchScore}<span className='text-2xl'>%</span></p>
+                    </div>
+                </div>
               </div>
               <div className="md:col-span-2 space-y-4">
                 <h3 className="font-semibold text-lg flex items-center">
                   <Bot className="mr-2 h-5 w-5" /> AI-Powered Improvement Suggestions
                 </h3>
-                <div className="prose prose-sm max-w-none text-muted-foreground p-4 border rounded-md bg-background h-48 overflow-y-auto">
+                <div className="prose prose-sm max-w-none text-muted-foreground p-4 border rounded-md bg-background h-full min-h-[16rem] overflow-y-auto">
                   <p>{analysisResult.improvements}</p>
                 </div>
               </div>
