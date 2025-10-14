@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,25 @@ import {
   GraduationCap,
   LayoutDashboard,
   Users,
+  CheckCircle,
+  Star,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/components/icons/logo';
 import { useUser } from '@/firebase/provider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import {
+  Card,
+  CardContent
+} from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+
 
 const features = [
   {
@@ -43,11 +56,60 @@ const features = [
   },
 ];
 
+const whyChooseUsPoints = [
+    {
+        icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+        text: "Comprehensive tools for end-to-end placement preparation."
+    },
+    {
+        icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+        text: "Access to a network of top-tier industry mentors."
+    },
+    {
+        icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+        text: "AI-driven insights to give you a competitive edge."
+    },
+    {
+        icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+        text: "Community-driven resources and real interview experiences."
+    }
+]
+
+const mentors = [
+  {
+    id: 1,
+    name: 'Aditya Sharma',
+    company: 'Amazon',
+    role: 'SDE II',
+    imageId: 'mentor-1',
+    imageHint: 'professional portrait'
+  },
+  {
+    id: 2,
+    name: 'Priya Singh',
+    company: 'Google',
+    role: 'Product Manager',
+    imageId: 'mentor-2',
+    imageHint: 'professional woman'
+  },
+  {
+    id: 3,
+    name: 'Rohan Verma',
+    company: 'Microsoft',
+    role: 'Data Scientist',
+    imageId: 'mentor-3',
+    imageHint: 'software engineer'
+  },
+];
+
+
 const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 
 const FeatureCard = ({ icon, title, description }: { icon: JSX.Element, title: string, description: string }) => (
-    <div className="flex flex-col items-center text-center p-6 bg-card rounded-lg shadow-md">
-        {icon}
+    <div className="flex flex-col items-center text-center p-6 bg-card rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+        <div className='p-4 bg-primary/10 rounded-full'>
+            {icon}
+        </div>
         <h3 className="text-xl font-bold font-headline mt-4 mb-2">{title}</h3>
         <p className="text-muted-foreground">{description}</p>
     </div>
@@ -56,7 +118,6 @@ const FeatureCard = ({ icon, title, description }: { icon: JSX.Element, title: s
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
-  const router = useRouter();
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -110,14 +171,15 @@ export default function HomePage() {
               </div>
             </div>
             {heroImage && (
-              <div className="relative h-80 lg:h-[400px] w-full rounded-xl shadow-lg overflow-hidden">
+              <div className="relative h-80 lg:h-[400px] w-full rounded-xl shadow-lg overflow-hidden group">
                 <Image
                   src={heroImage.imageUrl}
                   alt={heroImage.description}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                   data-ai-hint={heroImage.imageHint}
                 />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
             )}
           </div>
@@ -144,6 +206,92 @@ export default function HomePage() {
             </div>
         </section>
 
+        <section id="why-us" className="py-16 md:py-24">
+            <div className="container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold font-headline">Why Choose PlacementPro?</h2>
+                    <p className="text-lg text-muted-foreground">
+                        Stop juggling multiple platforms. We provide everything you need to go from a student to a top-tier professional, all in one place.
+                    </p>
+                    <ul className='space-y-4'>
+                        {whyChooseUsPoints.map((point, index) => (
+                            <li key={index} className='flex items-start gap-3'>
+                                {point.icon}
+                                <span className='text-muted-foreground'>{point.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="relative h-80 lg:h-[400px] w-full rounded-xl shadow-lg overflow-hidden group">
+                {PlaceHolderImages.find((img) => img.id === 'feature-mentors') && (
+                     <Image
+                        src={PlaceHolderImages.find((img) => img.id === 'feature-mentors')?.imageUrl || ''}
+                        alt="Why Choose Us Image"
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        data-ai-hint="team meeting"
+                    />
+                )}
+                </div>
+            </div>
+        </section>
+
+         <section id="mentors" className="py-16 md:py-24 bg-muted">
+            <div className='container'>
+                 <div className="text-center space-y-4 mb-16">
+                    <h2 className="text-3xl md:text-4xl font-bold font-headline">Meet Our World-Class Mentors</h2>
+                    <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                       Learn from the best. Our mentors are experienced professionals from leading tech companies.
+                    </p>
+                </div>
+                <Carousel
+                    opts={{
+                        align: "start",
+                        loop: true,
+                    }}
+                    className="w-full max-w-5xl mx-auto"
+                    >
+                    <CarouselContent>
+                        {mentors.map((mentor) => {
+                            const mentorImage = PlaceHolderImages.find(img => img.id === mentor.imageId);
+                            return (
+                                <CarouselItem key={mentor.id} className="md:basis-1/2 lg:basis-1/3">
+                                    <div className="p-1">
+                                    <Card className='overflow-hidden text-center'>
+                                        <CardContent className="flex flex-col items-center aspect-square justify-center p-6">
+                                            {mentorImage && (
+                                                <Image
+                                                    src={mentorImage.imageUrl}
+                                                    alt={mentor.name}
+                                                    width={120}
+                                                    height={120}
+                                                    className="rounded-full border-4 border-primary/50 mb-4"
+                                                    data-ai-hint={mentorImage.imageHint}
+                                                />
+                                            )}
+                                            <h3 className='text-xl font-bold font-headline'>{mentor.name}</h3>
+                                            <p className='text-muted-foreground'>{mentor.role}</p>
+                                            <p className='text-sm font-semibold text-primary'>{mentor.company}</p>
+                                        </CardContent>
+                                    </Card>
+                                    </div>
+                                </CarouselItem>
+                            )
+                        })}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                </Carousel>
+                 <div className='text-center mt-12'>
+                    <Button asChild size="lg">
+                        <Link href="/dashboard/find-mentor">
+                            Explore All Mentors <ArrowRight className="ml-2" />
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+        </section>
+
       </main>
       <footer className="py-8 border-t">
         <div className="container text-center text-muted-foreground text-sm">
@@ -153,3 +301,4 @@ export default function HomePage() {
     </div>
   );
 }
+
