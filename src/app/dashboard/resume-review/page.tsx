@@ -9,7 +9,7 @@ import {
 import { ResumeReviewForm } from './ResumeReviewForm';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { FileText } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 const heroImage = PlaceHolderImages.find(
   (img) => img.id === 'resume-analysis-hero'
@@ -18,34 +18,29 @@ const heroImage = PlaceHolderImages.find(
 export default function ResumeReviewPage() {
   return (
     <div className="space-y-8">
-      <div className="grid gap-8 md:grid-cols-2 items-center">
-        <div>
-          <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
-            <FileText className="w-8 h-8" /> AI Resume Review
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Get instant feedback on your resume. Upload your resume and paste a
-            job description to see how well you match and where you can improve.
-          </p>
-        </div>
-        {heroImage && (
-          <div className="relative h-64 w-full rounded-xl shadow-lg overflow-hidden">
-            <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
-              fill
-              className="object-cover"
-              data-ai-hint={heroImage.imageHint}
-            />
+       <div className="relative isolate overflow-hidden rounded-xl border">
+        <div className="absolute inset-0 -z-10 bg-grid-pattern [mask-image:linear-gradient(to_bottom,white_30%,transparent_100%)]"></div>
+        <div className="p-8 md:p-12">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tighter">
+              Score Your Resume Against Your Dream Job
+            </h1>
+            <p className="mt-4 text-base text-muted-foreground">
+              Our AI-powered tool analyzes your resume against any job description, providing a match score and actionable insights to help you beat the Applicant Tracking System (ATS).
+            </p>
           </div>
-        )}
+        </div>
       </div>
 
-      <Card>
+
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Analyze Your Resume</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-2xl font-headline">
+            <Bot className="w-6 h-6 text-primary" />
+            Analyze Your Resume
+          </CardTitle>
           <CardDescription>
-            Upload a PDF (max 5MB) and paste the full job description below.
+            For the best results, upload your resume as a PDF (max 5MB) and paste the complete job description from the company's career page.
           </CardDescription>
         </CardHeader>
         <CardContent>

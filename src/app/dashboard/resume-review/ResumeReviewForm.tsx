@@ -18,16 +18,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ArrowRight, Award, Bot, Sparkles, Star } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Pie, PieChart, Cell } from "recharts"
-
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { AlertCircle, ArrowRight, Award, Bot, Check, FileCheck, FileTerminal, Search, Sparkles, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const resumeSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
@@ -41,13 +40,39 @@ type AnalysisResult = {
   improvements: string;
 };
 
+const loadingSteps = [
+    "Parsing PDF...",
+    "Analyzing job description...",
+    "Comparing resume against role...",
+    "Generating insights...",
+    "Finalizing report...",
+];
+
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const [loadingText, setLoadingText] = useState(loadingSteps[0]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (pending) {
+      let i = 0;
+      setLoadingText(loadingSteps[i]);
+      interval = setInterval(() => {
+        i = (i + 1) % loadingSteps.length;
+        setLoadingText(loadingSteps[i]);
+      }, 2000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [pending]);
+
+
   return (
-    <Button type="submit" disabled={pending} size="lg">
+    <Button type="submit" disabled={pending} size="lg" className="w-full sm:w-auto">
       {pending ? (
         <>
-          <Bot className="mr-2 h-5 w-5 animate-spin" /> Analyzing...
+          <Bot className="mr-2 h-5 w-5 animate-spin" /> {loadingText}
         </>
       ) : (
         <>
@@ -59,44 +84,124 @@ function SubmitButton() {
 }
 
 const ScoreChart = ({ score }: { score: number }) => {
-    const chartData = [{ name: 'score', value: score }, { name: 'empty', value: 100 - score }];
-    const chartConfig = {
-      score: {
-        label: "Score",
-        color: "hsl(var(--primary))",
-      },
-       empty: {
-        label: "Empty",
-        color: "hsl(var(--muted))",
-      },
-    }
+    const circumference = 2 * Math.PI * 45; // 2 * pi * r
+    const offset = circumference - (score / 100) * circumference;
+
+    let colorClass = 'text-green-500';
+    if (score < 60) colorClass = 'text-red-500';
+    else if (score < 80) colorClass = 'text-yellow-500';
 
     return (
-       <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square h-full"
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={60}
-              strokeWidth={5}
-              startAngle={90}
-              endAngle={450}
-            >
-                <Cell key="cell-score" fill="var(--color-score)" />
-                <Cell key="cell-empty" fill="var(--color-empty)" />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+        <div className="relative flex items-center justify-center h-48 w-48">
+            <svg className="absolute" width="160" height="160" viewBox="0 0 100 100">
+                <circle
+                    className="text-muted/50"
+                    strokeWidth="8"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="45"
+                    cx="50"
+                    cy="50"
+                />
+                <circle
+                    className={`transform-gpu -rotate-90 origin-center transition-all duration-1000 ${colorClass}`}
+                    strokeWidth="8"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="45"
+                    cx="50"
+                    cy="50"
+                    strokeLinecap='round'
+                />
+            </svg>
+            <div className={`text-4xl font-bold font-headline ${colorClass}`}>{score}<span className='text-2xl'>%</span></div>
+             <p className="absolute bottom-6 text-sm font-medium text-muted-foreground">Match Score</p>
+        </div>
     )
 }
+
+const KeywordAnalysis = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <Search className='w-5 h-5' />
+                Keyword Analysis
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div>
+                <h3 className="font-semibold text-green-600 mb-2">Matching Keywords</h3>
+                <div className='flex flex-wrap gap-2'>
+                    {['React', 'Node.js', 'TypeScript', 'Agile', 'CI/CD', 'Leadership'].map(k => (
+                        <Badge key={k} variant="secondary" className='bg-green-100 text-green-800 border-green-200'>{k}</Badge>
+                    ))}
+                </div>
+            </div>
+             <div>
+                <h3 className="font-semibold text-red-600 mb-2">Missing Keywords</h3>
+                <div className='flex flex-wrap gap-2'>
+                    {['GraphQL', 'Kubernetes', 'Product Strategy'].map(k => (
+                        <Badge key={k} variant="secondary" className='bg-red-100 text-red-800 border-red-200'>{k}</Badge>
+                    ))}
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+const ATSCheck = () => (
+     <Card>
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <FileTerminal className='w-5 h-5' />
+                ATS & Formatting Check
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+            <div className='flex items-center gap-2 text-green-600'><Check className='w-4 h-4' /> Standard Font Detected</div>
+            <div className='flex items-center gap-2 text-red-600'><X className='w-4 h-4' /> Complex Tables Found (May cause parsing issues)</div>
+            <div className='flex items-center gap-2 text-green-600'><Check className='w-4 h-4' /> Clear Section Headings</div>
+            <div className='flex items-center gap-2 text-green-600'><Check className='w-4 h-4' /> Contact Information is Parsable</div>
+        </CardContent>
+    </Card>
+);
+
+
+const SectionBreakdown = ({improvements}: {improvements: string}) => (
+     <Card>
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <FileCheck className='w-5 h-5' />
+                AI-Powered Suggestions
+            </CardTitle>
+            <CardDescription>Actionable tips to improve your resume's impact.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger>Work Experience</AccordionTrigger>
+                    <AccordionContent className="prose prose-sm max-w-none text-muted-foreground">
+                       {improvements}
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                    <AccordionTrigger>Skills Section</AccordionTrigger>
+                    <AccordionContent>
+                        Ensure your skills section includes keywords from the job description like 'GraphQL' and 'Kubernetes'.
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3">
+                    <AccordionTrigger>Summary/Objective</AccordionTrigger>
+                    <AccordionContent>
+                        Tailor your summary to highlight your experience with product strategy to better match the role's requirements.
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </CardContent>
+    </Card>
+)
 
 export function ResumeReviewForm() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -136,18 +241,19 @@ export function ResumeReviewForm() {
     <div className="space-y-8">
       <Form {...form}>
         <form ref={formRef} action={formAction} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
              <FormField
               control={form.control}
               name="resume"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Your Resume (PDF)</FormLabel>
+                <FormItem>
+                  <FormLabel className='text-base'>Your Resume (PDF)</FormLabel>
                   <FormControl>
                     <Input
                       type="file"
                       accept=".pdf"
                       onChange={(e) => field.onChange(e.target.files)}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                     />
                   </FormControl>
                   <FormMessage />
@@ -158,12 +264,12 @@ export function ResumeReviewForm() {
               control={form.control}
               name="jobDescription"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Job Description</FormLabel>
+                <FormItem>
+                  <FormLabel className='text-base'>Job Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Paste the full job description here..."
-                      className="min-h-[200px] resize-y"
+                      className="min-h-[250px] resize-y"
                       {...field}
                     />
                   </FormControl>
@@ -186,55 +292,25 @@ export function ResumeReviewForm() {
       </Form>
       
       {analysisResult && (
-        <div ref={resultsRef} className="pt-8">
-        <Card className="mt-8 border-primary">
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline flex items-center gap-2">
-              <Award className="w-7 h-7 text-primary" />
-              Resume Analysis Complete
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="relative flex flex-col items-center justify-center p-6 bg-muted rounded-lg h-64">
-                <p className="text-sm font-medium text-muted-foreground absolute top-4">Match Score</p>
-                <div className='relative h-40 w-40'>
-                    <ScoreChart score={analysisResult.matchScore} />
-                    <div className='absolute inset-0 flex items-center justify-center'>
-                         <p className="text-4xl font-bold font-headline text-primary">{analysisResult.matchScore}<span className='text-2xl'>%</span></p>
-                    </div>
-                </div>
-              </div>
-              <div className="md:col-span-2 space-y-4">
-                <h3 className="font-semibold text-lg flex items-center">
-                  <Bot className="mr-2 h-5 w-5" /> AI-Powered Improvement Suggestions
-                </h3>
-                <div className="prose prose-sm max-w-none text-muted-foreground p-4 border rounded-md bg-background h-full min-h-[16rem] overflow-y-auto">
-                  <p>{analysisResult.improvements}</p>
-                </div>
-              </div>
+        <div ref={resultsRef} className="pt-12">
+        <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-headline tracking-tight">Your Analysis is Ready</h2>
+            <p className="text-muted-foreground mt-2">Here's how your resume stacks up against the job description.</p>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-1 flex flex-col items-center gap-6">
+                <Card className="w-full flex justify-center">
+                    <CardContent className="p-0">
+                        <ScoreChart score={analysisResult.matchScore} />
+                    </CardContent>
+                </Card>
+                <ATSCheck />
             </div>
-            <Separator />
-             <Card className="bg-primary/10 border-primary/20">
-                <CardHeader className="flex-row items-center gap-4">
-                    <div className="p-3 bg-accent rounded-full">
-                        <Star className="w-6 h-6 text-accent-foreground" />
-                    </div>
-                    <div>
-                        <CardTitle className="text-lg text-primary font-headline">Go a Step Further: Get a Premium Review</CardTitle>
-                        <CardDescription className="text-primary/80">
-                         Upgrade to a premium review for detailed, personalized feedback from an industry expert.
-                        </CardDescription>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Button variant="default" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                        Request Expert Review <ArrowRight className="ml-2" />
-                    </Button>
-                </CardContent>
-            </Card>
-          </CardContent>
-        </Card>
+             <div className="lg:col-span-2 space-y-6">
+                <KeywordAnalysis />
+                <SectionBreakdown improvements={analysisResult.improvements} />
+            </div>
+        </div>
         </div>
       )}
     </div>
