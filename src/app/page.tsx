@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -43,10 +42,16 @@ const features = [
   },
 ];
 
-const getFeatureImage = (id: string) =>
-  PlaceHolderImages.find((img) => img.id === id);
-
 const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
+
+const FeatureCard = ({ icon, title, description }: { icon: JSX.Element, title: string, description: string }) => (
+    <div className="flex flex-col items-center text-center p-6 bg-card rounded-lg shadow-md">
+        {icon}
+        <h3 className="text-xl font-bold font-headline mt-4 mb-2">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+    </div>
+);
+
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
@@ -121,16 +126,14 @@ export default function HomePage() {
                     </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                {features.map((feature, index) => {
-                    const featureImage = getFeatureImage(feature.imageId);
-                    return (
-                        <div key={index} className="flex flex-col items-center text-center p-6 bg-card rounded-lg shadow-md">
-                            {feature.icon}
-                            <h3 className="text-xl font-bold font-headline mt-4 mb-2">{feature.title}</h3>
-                            <p className="text-muted-foreground">{feature.description}</p>
-                        </div>
-                    );
-                })}
+                {features.map((feature, index) => (
+                    <FeatureCard
+                        key={index}
+                        icon={feature.icon}
+                        title={feature.title}
+                        description={feature.description}
+                    />
+                ))}
                 </div>
             </div>
         </section>
