@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Bot,
   GraduationCap,
+  LayoutDashboard,
   Users,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -57,12 +58,6 @@ export default function HomePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, isUserLoading, router]);
-
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -74,12 +69,23 @@ export default function HomePage() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
-                <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-                <Link href="/login">Get Started</Link>
-            </Button>
+            {!isUserLoading && user ? (
+              <Button asChild>
+                <Link href="/dashboard">
+                  <LayoutDashboard className="mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/login">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
